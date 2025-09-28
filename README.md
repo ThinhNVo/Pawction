@@ -57,15 +57,15 @@ At a high level:
 
 ## Scrum Roles
 
-Product Owner: 
+Product Owner: Thinh Vo, Khagendra Dhungel, Dinesh Adhikari 
 
-Scrum Master: 
+Scrum Master: Thinh Vo
 
-DevOps person: 
+DevOps person: Khagendra Dhungel
 
 Frontend Team: Dinesh Adhikari 
 
-Backend Team: Dinesh Adhikari 
+Backend Team: Dinesh Adhikari, Thinh Vo
 
 ---
 

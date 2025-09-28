@@ -62,7 +62,8 @@ At a high level:
 Make sure you have:
 
 - Java 21  
-- Maven  
+- Maven
+- SpringBoot
 
 ### Installation
 

@@ -14,8 +14,9 @@ Pet breeders, sellers, and even owners often struggle to find the right home for
 
 1. [Overview](#overview)  
 2. [Features](#features)  
-3. [Architecture](#architecture)  
-4. [Getting Started](#getting-started)  
+3. [Architecture](#architecture)
+4. [Scrum Roles](#Scrum-roles)
+5. [Getting Started](#getting-started)  
    - [Prerequisites](#prerequisites)  
    - [Installation](#installation)  
 
@@ -52,6 +53,19 @@ At a high level:
 - Backend services: User, Auction, Payment, Notification, Admin  
 - Persistence: relational DB (for users, auctions, bids)
 
+---
+
+## Scrum Roles
+
+Product Owner: 
+
+Scrum Master: 
+
+DevOps person: 
+
+Frontend Team: Dinesh Adhikari 
+
+Backend Team: Dinesh Adhikari 
 
 ---
 
@@ -63,7 +77,7 @@ Make sure you have:
 
 - Java 21  
 - Maven
-- SpringBoot
+- SpringBoot  
 
 ### Installation
 

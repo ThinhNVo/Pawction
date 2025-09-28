@@ -27,7 +27,7 @@ Pet breeders, sellers, and even owners often struggle to find the right home for
 Pawctions enables users to:
 
 - Register and manage profile  
-- List items or services (e.g. pet supplies, grooming services, pet adoption auctions)  
+- List items (pet adoption auctions) 
 - Place real-time bids on active auctions  
 - Receive live updates when outbid  
 - Handle payments 

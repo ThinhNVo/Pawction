@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: DatabaseMigration
+  datasource:
+    url: jdbc:mysql://localhost:3306/store?createDatabaseIfNotExist=true
+    username: root
+    password: P@ssw0rd
+

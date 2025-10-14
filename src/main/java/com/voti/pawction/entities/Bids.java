@@ -1,10 +1,18 @@
 package com.voti.pawction.entities;
 
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
+@Setter
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@ToString
 @Entity
+@Table(name = "bids")
 public class Bids {
 
     @Id

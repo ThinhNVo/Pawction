@@ -27,7 +27,15 @@ public class Transaction {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    //Missing transaction Type
+    @Enumerated(EnumType.STRING)
+    @Column(name = "transaction_type", nullable = false)
+    private Transaction.Category transactionType;
+
+    public enum Category {
+        DEPOSIT,
+        WITHDRAW,
+        SETTLEMENT,
+    }
 
 
 }

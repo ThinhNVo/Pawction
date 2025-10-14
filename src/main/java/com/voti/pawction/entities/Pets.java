@@ -10,6 +10,7 @@ import lombok.*;
 @Builder
 @ToString
 @Entity
+@Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "pets")
 public class Pets {
 
@@ -20,8 +21,8 @@ public class Pets {
     @Column(name = "pet_name", nullable = false)
     private String petName;
 
-    @Column(name = "pet_breeds", nullable = false)
-    private String petBreeds;
+    @Column(name = "pet_breed", nullable = false)
+    private String petBreed;
 
     @Column(name = "pet_age_months", nullable = false)
     private int petAgeMonths;
@@ -36,7 +37,6 @@ public class Pets {
     @Column(name = "pet_category", nullable = false)
     private Category petCategory;
 
-    // Example enum for category (you can expand this as needed)
     public enum Category {
         DOG,
         CAT,

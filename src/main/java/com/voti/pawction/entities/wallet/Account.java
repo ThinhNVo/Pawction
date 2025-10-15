@@ -1,4 +1,4 @@
-package com.voti.pawction.entities;
+package com.voti.pawction.entities.wallet;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,9 +18,11 @@ import java.time.LocalDateTime;
 public class Account {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
+
     @Column(name="balance", nullable = false)
     private BigDecimal balance;
+
     @Column(name="created_at", nullable = false)
     private LocalDateTime createdAt;
 

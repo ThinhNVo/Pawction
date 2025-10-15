@@ -10,7 +10,7 @@ import lombok.*;
 @Builder
 @ToString
 @Entity
-@Table(name="users")
+@Table(name="user")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,7 +19,7 @@ public class User {
     private String name;
     @Column(name = "email", nullable = false)
     private String email;
-    @Column(name = "password", nullable = false)
+    @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
 

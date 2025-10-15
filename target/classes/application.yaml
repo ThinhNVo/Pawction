@@ -1,6 +1,6 @@
 spring:
   application:
-    name: DatabaseMigration
+    name: Pawction
   datasource:
     url: jdbc:mysql://localhost:3306/pawction?createDatabaseIfNotExist=true
     username: root

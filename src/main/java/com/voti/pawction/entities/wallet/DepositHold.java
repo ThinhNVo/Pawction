@@ -3,7 +3,8 @@ package com.voti.pawction.entities.wallet;
 import com.voti.pawction.entities.wallet.enums.Status;
 import jakarta.persistence.*;
 import lombok.*;
-
+import com.voti.pawction.entities.wallet.Account;
+import com.voti.pawction.entities.auction.Auction;
 import java.time.LocalDateTime;
 
 @Setter
@@ -38,6 +39,16 @@ public class DepositHold {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    //Many DepHolds to one account
+    @ManyToOne
+    @JoinColumn(name = "account_id")
+    private Account account;
+
+    //Many DepHolds to one auction
+    @ManyToOne
+    @JoinColumn(name = "auction_id")
+    private Auction auction;
 
 
 }

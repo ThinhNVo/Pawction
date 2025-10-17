@@ -34,12 +34,12 @@ public class DepositHold {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    //Many DepHolds to one account
+    //DepositHold to Account Relationship
     @ManyToOne(optional = false)
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
 
-    //Many DepHolds to one auction
+    //DepositHold to Auction Relationship
     @ManyToOne(optional = false)
     @JoinColumn(name = "auction_id", nullable = false)
     private Auction auction;

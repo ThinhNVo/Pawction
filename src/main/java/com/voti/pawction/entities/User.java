@@ -55,4 +55,9 @@ public class User {
     }
 
 
+    // don't test
+    public void setWinningBid(Auction auction, Bid bid) {
+        auction.setWinningUser(this);
+        auction.setHighestBid(bid.getAmount());
+    }
 }

@@ -64,7 +64,9 @@ public class Pet {
     public String primaryPhotoUrl;
 
     //Pet to Auction Relationship
-    @OneToOne
+    @MapsId
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "pet_id")
+    @ToString.Exclude
     private Auction auction;
 }

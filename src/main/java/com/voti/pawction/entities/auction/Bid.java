@@ -45,5 +45,16 @@ public class Bid {
     private User user;
 
 
+    // Bid Create Test optional but for logic
+    public static Bid create(User user, Auction auction, double amount) {
+        Bid bid = new Bid();
+        bid.setUser(user);
+        bid.setAuction(auction);
+        bid.setAmount(amount);
+        bid.setBidStatus(Bid_Status.WINNING);
+        bid.setBidTime(LocalDateTime.now());
+        return bid;
+    }
+
 
 }

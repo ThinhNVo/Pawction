@@ -1,9 +1,15 @@
 package com.voti.pawction.entities.auction;
 
 import com.voti.pawction.entities.auction.enums.Auction_Status;
+import com.voti.pawction.entities.wallet.Account;
+import com.voti.pawction.entities.wallet.DepositHold;
+import com.voti.pawction.entities.User;
+import com.voti.pawction.entities.pet.Pet;
+
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Setter
 @Getter
@@ -44,6 +50,22 @@ public class Auction {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    //One Auction has many deposite holds
+    @OneToMany(mappedBy = "auction")
+    private List<DepositHold> depositHold;
+
+    //One pet to one auction
+    @OneToOne(mappedBy = "auction")
+    private Pet pet;
+
+    @OneToMany(mappedBy = "auction")
+    private List<Bid> bid;
+
+    //May auctions made by one user
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 }
 
 

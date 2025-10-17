@@ -1,6 +1,7 @@
 package com.voti.pawction.entities.pet;
 
 import com.voti.pawction.entities.pet.enums.*;
+import com.voti.pawction.entities.auction.Auction;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -62,4 +63,8 @@ public class Pet {
     @Column(name = "primary_photo_url", nullable = false)
     public String primaryPhotoUrl;
 
+    //One Auction per pet
+    @OneToOne
+    @JoinColumn(name = "auction_id")
+    private Auction auction;
 }

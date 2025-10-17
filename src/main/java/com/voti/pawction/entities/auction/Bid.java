@@ -1,10 +1,12 @@
 package com.voti.pawction.entities.auction;
 
 import com.voti.pawction.entities.auction.enums.Bid_Status;
+import com.voti.pawction.entities.User;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Setter
 @Getter
@@ -36,8 +38,12 @@ public class Bid {
     @Column(name="bid_Time", nullable = false)
     private LocalDateTime bidTime;
 
+    @ManyToOne
+    @JoinColumn(name = "auction_id")
+    private Auction auction;
 
-
+    @ManyToMany(mappedBy = "user_bid")
+    private List<User> users;
 
 
 

@@ -4,6 +4,9 @@ import com.voti.pawction.entities.wallet.enums.Transaction_Type;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.List;
+import com.voti.pawction.entities.wallet.Account;
+
 
 @Setter
 @Getter
@@ -32,8 +35,10 @@ public class Transaction {
     @Column(name = "occurred_at", nullable = false)
     private LocalDateTime createdAt;
 
-
-
+    //Many transactions to one account
+    @ManyToOne
+    @JoinColumn(name = "account_id")
+    private Account account;
 
 
 }

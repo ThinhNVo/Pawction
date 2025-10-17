@@ -23,12 +23,6 @@ public class Bid {
     private int bidId;
 
     @Column(nullable = false)
-    public int auctionId;
-
-    @Column(nullable = false)
-    public int userId;
-
-    @Column(nullable = false)
     public Double amount;
 
     @Enumerated(EnumType.STRING)
@@ -38,12 +32,17 @@ public class Bid {
     @Column(name="bid_Time", nullable = false)
     private LocalDateTime bidTime;
 
+    //Bid to Auction Relation
     @ManyToOne
     @JoinColumn(name = "auction_id")
+    @ToString.Exclude
     private Auction auction;
 
-    @ManyToMany(mappedBy = "user_bid")
-    private List<User> users;
+    //Bid to User Relation
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    @ToString.Exclude
+    private User user;
 
 
 

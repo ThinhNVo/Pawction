@@ -9,6 +9,7 @@ import com.voti.pawction.entities.pet.Pet;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Setter
@@ -23,15 +24,6 @@ public class Auction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int auctionId;
-
-    @Column(name = "pet_id", nullable = false)
-    private int petId;
-
-    @Column(name = "seller_user_id", nullable = false)
-    private int sellerUserId;
-
-    @Column(name = "winner_user_id")
-    private int winnerUserId;
 
     @Column(name = "start_price", nullable = false)
     private Double startPrice;
@@ -51,21 +43,37 @@ public class Auction {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    //One Auction has many deposite holds
-    @OneToMany(mappedBy = "auction")
-    private List<DepositHold> depositHold;
-
-    //One pet to one auction
-    @OneToOne(mappedBy = "auction")
+    //Auction to Pet Relation
+    @OneToOne(mappedBy = "auction", cascade = CascadeType.REMOVE)
     private Pet pet;
 
+    //Auction to DepositHold Relation
     @OneToMany(mappedBy = "auction")
-    private List<Bid> bid;
+    private List<DepositHold> depositHolds = new ArrayList<>();
+    public void addDepositHold(DepositHold depositHold) {
+        depositHolds.add(depositHold);
+        depositHold.setAuction(this);
+    }
 
-    //May auctions made by one user
+    //Auction to Bid Relation
+    @OneToMany(mappedBy = "auction", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+    private List<Bid> bids = new ArrayList<>();
+    public void addBid(Bid bid) {
+        bids.add(bid);
+        bid.setAuction(this);
+    }
+
+    //Auction to Winning User relation
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "winner_user_id")
+    @ToString.Exclude
+    private User winningUser;
+
+    //Auction to Selling User relation
+    @ManyToOne
+    @JoinColumn(name = "seller_user_id")
+    @ToString.Exclude
+    private User sellingUser;
 }
 
 

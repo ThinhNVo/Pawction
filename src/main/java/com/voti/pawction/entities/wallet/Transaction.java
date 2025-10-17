@@ -22,9 +22,6 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int transactionId;
 
-    @Column(name = "account_id", nullable = false)
-    private int accountId;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "tx_type", nullable = false)
     private Transaction_Type transactionType;
@@ -35,9 +32,10 @@ public class Transaction {
     @Column(name = "occurred_at", nullable = false)
     private LocalDateTime createdAt;
 
-    //Many transactions to one account
-    @ManyToOne
+    //Transaction to Account Relation
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id")
+    @ToString.Exclude
     private Account account;
 
 

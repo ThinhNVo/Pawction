@@ -63,8 +63,8 @@ public class Pet {
     @Column(name = "primary_photo_url", nullable = false)
     public String primaryPhotoUrl;
 
-    //One Auction per pet
+    //Pet to Auction Relationship
     @OneToOne
-    @JoinColumn(name = "auction_id")
+    @JoinColumn(name = "pet_id")
     private Auction auction;
 }

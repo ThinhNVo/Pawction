@@ -21,12 +21,6 @@ public class DepositHold {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int holdId;
 
-    @Column(name = "account_id", nullable = false)
-    public int accountId;
-
-    @Column(name = "auction_id", nullable = false)
-    private int auctionId;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private Status depositStatus;
@@ -41,13 +35,13 @@ public class DepositHold {
     private LocalDateTime updatedAt;
 
     //Many DepHolds to one account
-    @ManyToOne
-    @JoinColumn(name = "account_id")
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "account_id", nullable = false)
     private Account account;
 
     //Many DepHolds to one auction
-    @ManyToOne
-    @JoinColumn(name = "auction_id")
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "auction_id", nullable = false)
     private Auction auction;
 
 

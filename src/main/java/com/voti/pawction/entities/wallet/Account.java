@@ -48,6 +48,7 @@ public class Account {
         hold.setDepositStatus(Status.HELD);
         holds.add(hold);
         hold.setAccount(this);
+        auction.addDepositHold(hold);
         return hold;
     }
 

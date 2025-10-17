@@ -38,7 +38,7 @@ public class User {
     private Account account;
 
     //User to Auction relation
-    @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+    @OneToMany(mappedBy = "selling_user", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
     private List<Auction> auctions = new ArrayList<>();
     public void addAuction(Auction auction) {
         auctions.add(auction);

@@ -32,24 +32,24 @@ create table bid
         foreign key (auction_id) references auction (auction_id),
     constraint bid_user_user_id_fk
         foreign key (user_id) references user (user_id)
-# );
-#
-# create table deposit_hold
-# (
-#     hold_id    bigint auto_increment
-#         primary key,
-#     account_id bigint                                            not null,
-#     auction_id bigint                                            not null,
-#     status     enum ('HELD', 'APPLIED', 'RELEASED', 'FORFEITED') not null,
-#     amount     decimal(19, 4) default 0.0000                     not null,
-#     created_at datetime       default CURRENT_TIMESTAMP          not null,
-#     updated_at datetime       default CURRENT_TIMESTAMP          not null,
-#     constraint uq_deposit_hold_pk
-#         unique (account_id, auction_id),
-#     constraint deposit_hold_account_account_id_fk
-#         foreign key (account_id) references account (account_id),
-#     constraint deposit_hold_auction_auction_id_fk
-#         foreign key (auction_id) references auction (auction_id)
-# );
+);
+
+create table deposit_hold
+(
+    hold_id    bigint auto_increment
+        primary key,
+    account_id bigint                                            not null,
+    auction_id bigint                                            not null,
+    status     enum ('HELD', 'APPLIED', 'RELEASED', 'FORFEITED') not null,
+    amount     decimal(19, 4) default 0.0000                     not null,
+    created_at datetime       default CURRENT_TIMESTAMP          not null,
+    updated_at datetime       default CURRENT_TIMESTAMP          not null,
+    constraint uq_deposit_hold_pk
+        unique (account_id, auction_id),
+    constraint deposit_hold_account_account_id_fk
+        foreign key (account_id) references account (account_id),
+    constraint deposit_hold_auction_auction_id_fk
+        foreign key (auction_id) references auction (auction_id)
+);
 
 

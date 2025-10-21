@@ -31,6 +31,7 @@ public class Auction {
     @Column(name = "highest_bid", nullable = false)
     private Double highestBid;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private Auction_Status status;
 

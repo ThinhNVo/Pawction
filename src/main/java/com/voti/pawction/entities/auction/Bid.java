@@ -56,5 +56,4 @@ public class Bid {
         return bid;
     }
 
-
 }

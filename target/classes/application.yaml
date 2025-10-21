@@ -2,7 +2,7 @@ spring:
   application:
     name: Pawction
   datasource:
-    url: jdbc:mysql://localhost:3306/pawction?createDatabaseIfNotExist=true
+    url: jdbc:mysql://localhost:3306/test?createDatabaseIfNotExist=true
     username: root
-    password: P@ssw0rd
+    password: shachin
 

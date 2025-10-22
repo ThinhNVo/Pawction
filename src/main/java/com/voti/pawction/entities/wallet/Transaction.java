@@ -33,7 +33,7 @@ public class Transaction {
     private LocalDateTime createdAt;
 
     //Transaction to Account Relation
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "account_id")
     @ToString.Exclude
     private Account account;

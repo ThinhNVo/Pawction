@@ -1,7 +1,6 @@
 package com.voti.pawction.entities.pet;
 
 import com.voti.pawction.entities.pet.enums.*;
-import com.voti.pawction.entities.auction.Auction;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -43,30 +42,33 @@ public class Pet {
     @Column(name = "dog_size", nullable = true)
     public Size dogSize;
 
-    @Column(name = "dog_temperature", nullable = true)
-    public String dogTemperature;
+    @Column(name = "dog_temperament", nullable = true)
+    public String dogTemperament;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = " dog_is_hypoallergenic", nullable = true)
+    @Column(name = "dog_is_hypoallergenic", nullable = true)
     public Allergy dogIsHypoallergenic;
 
     @Column(name = "cat_breed", nullable = true)
     public String catBreed;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "cat_coat_length", nullable = true)
     public Coat_Length catCoatLength;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "cat_indoor_only", nullable = true)
-    public Indoor CatIndoorOnly;
+    public Indoor catIndoorOnly;
 
     @Column(name = "primary_photo_url", nullable = false)
     public String primaryPhotoUrl;
 
-    //Pet to Auction Relationship
+    /*Pet to Auction Relationship
     @MapsId
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "pet_id")
     @ToString.Exclude
     private Auction auction;
+
+     */
 }

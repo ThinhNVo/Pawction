@@ -26,20 +26,20 @@ public class Bid {
     public Double amount;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name="status",nullable = false)
     public Bid_Status bidStatus;
 
     @Column(name="bid_Time", nullable = false)
     private LocalDateTime bidTime;
 
     //Bid to Auction Relation
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "auction_id")
     @ToString.Exclude
     private Auction auction;
 
     //Bid to User Relation
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
     @ToString.Exclude
     private User user;

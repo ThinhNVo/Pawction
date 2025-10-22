@@ -35,11 +35,12 @@ public class Account {
     private LocalDateTime createdAt;
 
     //Account to Transaction Relation
-    @OneToMany(mappedBy = "account", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+    @OneToMany(mappedBy = "account", cascade = {CascadeType.PERSIST,
+            CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Transaction> transactions = new ArrayList<>();
 
     //Account to DepositHold Relation
-    @OneToMany(mappedBy = "account")
+    @OneToMany(mappedBy = "account", fetch = FetchType.LAZY)
     private List<DepositHold> holds = new ArrayList<>();
     public DepositHold addHold(Auction auction, Double amount) {
         DepositHold hold = new DepositHold();

@@ -6,10 +6,7 @@ import com.voti.pawction.entities.auction.Bid;
 import com.voti.pawction.entities.auction.enums.Auction_Status;
 import com.voti.pawction.entities.auction.enums.Bid_Status;
 import com.voti.pawction.entities.pet.Pet;
-import com.voti.pawction.entities.pet.enums.Allergy;
-import com.voti.pawction.entities.pet.enums.Category;
-import com.voti.pawction.entities.pet.enums.Sex;
-import com.voti.pawction.entities.pet.enums.Size;
+import com.voti.pawction.entities.pet.enums.*;
 import com.voti.pawction.repositories.UserRepository;
 import com.voti.pawction.repositories.auction.AuctionRepository;
 import com.voti.pawction.repositories.auction.BidRepository;
@@ -19,6 +16,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @AllArgsConstructor
 @Service
@@ -50,18 +48,6 @@ public class UserService {
                .build();
        userRepository.save(user);
 
-       var auction = Auction.builder()
-               .startPrice(20.0)
-               .highestBid(0.0)
-               .status(Auction_Status.LIVE)
-               .createdAt(LocalDateTime.now())
-               .updatedAt(LocalDateTime.now())
-               .endTime(LocalDateTime.now())
-               .sellingUser(user)
-
-               .build();
-       auctionRepository.save(auction);
-
        var pet = Pet.builder()
                .petName("Barkley")
                .petAgeMonths(18)
@@ -70,12 +56,26 @@ public class UserService {
                .petCategory(Category.DOG)
                .dogBreed("Beagle")
                .dogSize(Size.MEDIUM)
-               .dogTemperature("Friendly")
-               .dogIsHypoallergenic(Allergy.NO)
-                .auction(auction)
+               .dogTemperament("Friendly")
+               .dogIsHypoallergenic(Allergy.UNKNOWN)
+               .primaryPhotoUrl("notfound")
                .build();
+
        petRepository.save(pet);
        System.out.println("Sample dog pet created: " + pet);
+
+       var auction = Auction.builder()
+               .startPrice(20.0)
+               .highestBid(0.0)
+               .status(Auction_Status.LIVE)
+               .createdAt(LocalDateTime.now())
+               .updatedAt(LocalDateTime.now())
+               .endTime(LocalDateTime.now())
+               .sellingUser(user)
+               .pet(pet)
+               .build();
+
+       auctionRepository.save(auction);
 
        var bid = Bid.builder()
                .amount(150.0)
@@ -96,4 +96,21 @@ public class UserService {
 
    }
 
+   @Transactional
+   public void createUserPool () {
+       List<User> users = List.of(
+               User.builder().name("Alice Seller").email("alice.seller@example.com").passwordHash("secure123").build(),
+               User.builder().name("Bob Bidder").email("bob.bidder@example.com").passwordHash("secure123").build(),
+               User.builder().name("Carol Viewer").email("carol.viewer@example.com").passwordHash("secure123").build(),
+               User.builder().name("Dave PowerUser").email("dave.poweruser@example.com").passwordHash("secure123").build(),
+               User.builder().name("Eve Tester").email("eve.tester@example.com").passwordHash("secure123").build()
+       );
+       userRepository.saveAll(users);
+   }
+
+
+   @Transactional
+   public void createAuctions () {
+        userRepository.findById(1L).get();
+   }
 }

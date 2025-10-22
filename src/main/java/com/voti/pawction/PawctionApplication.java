@@ -16,7 +16,8 @@ public class PawctionApplication {
 
         var userRepository = context.getBean(UserService.class);
         //userRepository.createTestUser();
-        userRepository.createTestBid();
+        //userRepository.createTestBid();
+        //userRepository.createUserPool();
 
 
     }

@@ -34,12 +34,13 @@ public class User {
     private String passwordHash;
 
     //User to Account relation
-    @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
     private Account account;
 
     //User to Auction relation
     //@OneToMany(mappedBy = "selling_user", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
-    @OneToMany(mappedBy = "sellingUser", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+    @OneToMany(mappedBy = "sellingUser", cascade = {CascadeType.PERSIST,
+            CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Auction> auctions = new ArrayList<>();
     public void addAuction(Auction auction) {
         auctions.add(auction);
@@ -47,7 +48,8 @@ public class User {
     }
 
     //User to Bid relation
-    @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST,
+            CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Bid> bids = new ArrayList<>();
     public void addBid(Auction auction, Bid bid) {
         bids.add(bid);

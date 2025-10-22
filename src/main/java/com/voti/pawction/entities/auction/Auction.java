@@ -45,11 +45,12 @@ public class Auction {
     private LocalDateTime updatedAt;
 
     //Auction to Pet Relation
-    @OneToOne(mappedBy = "auction", cascade = CascadeType.REMOVE)
+    @OneToOne(cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
+    @JoinColumn(name = "pet_id", nullable = false, unique = true)
     private Pet pet;
 
     //Auction to DepositHold Relation
-    @OneToMany(mappedBy = "auction")
+    @OneToMany(mappedBy = "auction", fetch = FetchType.LAZY)
     private List<DepositHold> depositHolds = new ArrayList<>();
     public void addDepositHold(DepositHold depositHold) {
         depositHolds.add(depositHold);
@@ -57,7 +58,8 @@ public class Auction {
     }
 
     //Auction to Bid Relation
-    @OneToMany(mappedBy = "auction", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+    @OneToMany(mappedBy = "auction", cascade = {CascadeType.PERSIST,
+            CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Bid> bids = new ArrayList<>();
     public void addBid(Bid bid) {
         bids.add(bid);
@@ -65,13 +67,13 @@ public class Auction {
     }
 
     //Auction to Winning User relation
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "winner_user_id")
     @ToString.Exclude
     private User winningUser;
 
     //Auction to Selling User relation
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "seller_user_id")
     @ToString.Exclude
     private User sellingUser;

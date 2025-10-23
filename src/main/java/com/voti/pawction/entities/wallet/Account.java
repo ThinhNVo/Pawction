@@ -26,7 +26,7 @@ import com.voti.pawction.entities.wallet.DepositHold;
 public class Account {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     @Column(name="balance", nullable = false)
     private BigDecimal balance;

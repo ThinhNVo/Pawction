@@ -18,6 +18,7 @@ public class PawctionApplication {
         //userRepository.createTestUser();
         //userRepository.createTestBid();
         //userRepository.createUserPool();
+        userRepository.overallProcess();
 
 
     }

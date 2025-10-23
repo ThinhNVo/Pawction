@@ -27,7 +27,7 @@ public class DepositHold {
     private Status depositStatus;
 
     @Column(name = "amount", nullable = false)
-    private double amount;
+    private Double amount;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;

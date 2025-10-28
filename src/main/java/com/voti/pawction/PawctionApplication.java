@@ -1,7 +1,6 @@
 package com.voti.pawction;
 
-import com.voti.pawction.repositories.UserRepository;
-import com.voti.pawction.services.UserService;
+import com.voti.pawction.services.user.UserServiceStub;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
@@ -14,11 +13,16 @@ public class PawctionApplication {
 
         ApplicationContext context = SpringApplication.run(PawctionApplication.class, args);
 
-        var userRepository = context.getBean(UserService.class);
+        var userRepository = context.getBean(UserServiceStub.class);
         //userRepository.createTestUser();
         //userRepository.createTestBid();
-        //userRepository.createUserPool();
-        userRepository.overallProcess();
+
+        //create an auction
+        //userRepository.overallProcess();
+
+        //create users to test bidding
+        userRepository.placeBid();
+        //userRepository.createAuctions();
 
 
     }

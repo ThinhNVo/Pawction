@@ -22,7 +22,7 @@ import java.util.List;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long userId;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -39,18 +39,23 @@ public class User {
 
     //User to Auction relation
     //@OneToMany(mappedBy = "selling_user", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+    @Builder.Default
     @OneToMany(mappedBy = "sellingUser", cascade = {CascadeType.PERSIST,
             CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Auction> auctions = new ArrayList<>();
+
     public void addAuction(Auction auction) {
         auctions.add(auction);
         auction.setSellingUser(this);
     }
 
     //User to Bid relation
+    @Builder.Default
     @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST,
             CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.LAZY)
+    @ToString.Exclude
     private List<Bid> bids = new ArrayList<>();
+
     public void addBid(Auction auction, Bid bid) {
         bids.add(bid);
         bid.setUser(this);

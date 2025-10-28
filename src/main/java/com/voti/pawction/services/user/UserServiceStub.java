@@ -1,17 +1,14 @@
-package com.voti.pawction.services;
+package com.voti.pawction.services.user;
 
 import com.voti.pawction.entities.User;
 import com.voti.pawction.entities.auction.Auction;
 import com.voti.pawction.entities.auction.Bid;
 import com.voti.pawction.entities.auction.enums.Auction_Status;
-import com.voti.pawction.entities.auction.enums.Bid_Status;
 import com.voti.pawction.entities.pet.Pet;
 import com.voti.pawction.entities.pet.enums.*;
 import com.voti.pawction.entities.wallet.Account;
 import com.voti.pawction.entities.wallet.DepositHold;
 import com.voti.pawction.entities.wallet.Transaction;
-import com.voti.pawction.entities.wallet.enums.Status;
-import com.voti.pawction.entities.wallet.enums.Transaction_Type;
 import com.voti.pawction.repositories.UserRepository;
 import com.voti.pawction.repositories.auction.AuctionRepository;
 import com.voti.pawction.repositories.auction.BidRepository;
@@ -29,7 +26,7 @@ import java.util.List;
 
 @AllArgsConstructor
 @Service
-public class UserService {
+public class UserServiceStub {
 
     private final UserRepository userRepository;
     private final PetRepository petRepository;
@@ -110,12 +107,16 @@ public class UserService {
    @Transactional
    public void overallProcess()
    {
+       System.out.println("=== overallProcess START ===");
        var user = User.builder()
                .name("Test User")
                .email("Test@example.com")
                .passwordHash("secure123")
                .build();
        userRepository.save(user);
+       System.out.printf("User saved: id=%s, name=%s, email=%s%n",
+               user.getUserId(), user.getName(), user.getEmail());
+
 
        var account = Account.builder()
                .balance(BigDecimal.valueOf(0))
@@ -124,13 +125,16 @@ public class UserService {
                .build();
        accountRepository.save(account);
 
+       System.out.printf("Account saved: id=%s, userId=%s, balance=%s%n",
+               account.getAccountId(), account.getUser().getUserId(), account.getBalance());
+
 
        var pet = Pet.builder()
                .petName("Barkley")
                .petAgeMonths(18)
                .petSex(Sex.M)
                .petWeight(12.5)
-               .petCategory(Category.DOG)
+               .petCategory(Category.Dog)
                .dogBreed("Beagle")
                .dogSize(Size.MEDIUM)
                .dogTemperament("Friendly")
@@ -138,7 +142,8 @@ public class UserService {
                .primaryPhotoUrl("notfound")
                .build();
 
-       petRepository.save(pet);
+       System.out.printf("Pet saved: id=%s, name=%s, category=%s%n",
+               pet.getPetId(), pet.getPetName(), pet.getPetCategory());
 
        var auction = Auction.builder()
            .startPrice(20.0)
@@ -147,40 +152,16 @@ public class UserService {
            .createdAt(LocalDateTime.now())
            .updatedAt(LocalDateTime.now())
            .endTime(LocalDateTime.now())
-           .sellingUser(user)
-           .pet(pet)
+               .sellingUser(user)
+               .pet(pet)
            .build();
+
        auctionRepository.save(auction);
 
-       var bid = Bid.builder()
-               .amount(150.0)
-               .bidStatus(Bid_Status.WINNING)
-               .bidTime(LocalDateTime.now())
-               .user(user)
-               .auction(auction)
-               .build();
+       System.out.printf("Auction saved: id=%s, status=%s, start=%.2f, petId=%s, sellerId=%s%n",
+               auction.getAuctionId(), auction.getStatus(), auction.getStartPrice(),
+               auction.getPet().getPetId(), auction.getSellingUser().getUserId());
 
-         bidRepository.save(bid);
-
-       var deposit = DepositHold.builder()
-               .depositStatus(Status.HELD)
-               .amount(2000.0)
-               .createdAt(LocalDateTime.now())
-               .updatedAt(LocalDateTime.now())
-               .account(account)
-               .auction(auction)
-               .build();
-
-       depositHoldRepository.save(deposit);
-
-       var transaction = Transaction.builder()
-               .transactionType(Transaction_Type.DEPOSIT)
-               .amount(200.0)
-               .createdAt(LocalDateTime.now())
-               .account(account)
-               .build();
-
-       transactionRepository.save(transaction);
    }
 
 
@@ -198,7 +179,43 @@ public class UserService {
 
 
    @Transactional
-   public void createAuctions () {
-        userRepository.findById(1L).get();
+   public void placeBid () {
+       var user1 =userRepository.save(User.builder().name("Alice Seller").email("alice.seller@example.com").passwordHash("secure123").build());
+       var user2 =userRepository.save(User.builder().name("Bob Bidder").email("bob.bidder@example.com").passwordHash("secure123").build());
+
+
+       var account1=accountRepository.save(Account.builder().balance(BigDecimal.valueOf(0)).createdAt(LocalDateTime.now()).user(user1).build());
+       var account2=accountRepository.save(Account.builder().balance(BigDecimal.valueOf(0)).createdAt(LocalDateTime.now()).user(user2).build());
+
+
+       System.out.println(account1);
+       System.out.println(account2);
+       System.out.println(user1);
+       System.out.println(user2);
+
+       Transaction transaction1 = account1.deposit(BigDecimal.valueOf(15));
+       Transaction transaction2 = account2.deposit(BigDecimal.valueOf(20));
+
+       var auction = auctionRepository.findById(1L).orElseThrow();
+
+       DepositHold holdAcc1 = account1.addHold(auction, 15.0);
+       DepositHold holdAcc2 = account2.addHold(auction, 15.0);
+
+       Bid bid1 = Bid.create(user1, auction, 50.00);
+       Bid bid2 = Bid.create(user2, auction, 100.00);
+
+       bidRepository.save(bid1);
+       bidRepository.save(bid2);
+
+       auctionRepository.save(auction);
+
+       for (Bid b : auction.getBids()) {
+           System.out.println(b);
+       }
+
+       for (DepositHold d : auction.getDepositHolds()) {
+           System.out.println(d);
+       }
+
    }
 }

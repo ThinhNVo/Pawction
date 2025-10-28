@@ -23,7 +23,7 @@ import java.util.List;
 public class Auction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int auctionId;
+    private Long auctionId;
 
     @Column(name = "start_price", nullable = false)
     private Double startPrice;
@@ -45,22 +45,29 @@ public class Auction {
     private LocalDateTime updatedAt;
 
     //Auction to Pet Relation
-    @OneToOne(cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
+    @OneToOne(cascade = {CascadeType.PERSIST,
+            CascadeType.REMOVE}, fetch = FetchType.EAGER)
     @JoinColumn(name = "pet_id", nullable = false, unique = true)
     private Pet pet;
 
     //Auction to DepositHold Relation
+    @Builder.Default
     @OneToMany(mappedBy = "auction", fetch = FetchType.LAZY)
+    @ToString.Exclude
     private List<DepositHold> depositHolds = new ArrayList<>();
+
     public void addDepositHold(DepositHold depositHold) {
         depositHolds.add(depositHold);
         depositHold.setAuction(this);
     }
 
     //Auction to Bid Relation
+    @Builder.Default
     @OneToMany(mappedBy = "auction", cascade = {CascadeType.PERSIST,
             CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.LAZY)
+    @ToString.Exclude
     private List<Bid> bids = new ArrayList<>();
+
     public void addBid(Bid bid) {
         bids.add(bid);
         bid.setAuction(this);

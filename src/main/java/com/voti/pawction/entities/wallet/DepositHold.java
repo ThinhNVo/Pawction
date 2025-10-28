@@ -20,7 +20,7 @@ public class DepositHold {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int holdId;
+    private Long holdId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -41,7 +41,6 @@ public class DepositHold {
     private Account account;
 
     //DepositHold to Auction Relationship
-    @Setter
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "auction_id", nullable = false)
     private Auction auction;

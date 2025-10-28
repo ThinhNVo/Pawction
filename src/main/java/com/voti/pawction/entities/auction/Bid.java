@@ -21,7 +21,7 @@ public class Bid {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int bidId;
+    private Long bidId;
 
     @Column(nullable = false)
     public Double amount;
@@ -49,8 +49,7 @@ public class Bid {
     // Bid Create Test optional but for logic
     public static Bid create(User user, Auction auction, double amount) {
         Bid bid = new Bid();
-        bid.setUser(user);
-        bid.setAuction(auction);
+        user.addBid(auction, bid);
         bid.setAmount(amount);
         bid.setBidStatus(Bid_Status.WINNING);
         bid.setBidTime(LocalDateTime.now());

@@ -3,6 +3,8 @@ package com.voti.pawction.entities.wallet;
 import com.voti.pawction.entities.wallet.enums.Transaction_Type;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import com.voti.pawction.entities.wallet.Account;
@@ -20,14 +22,14 @@ public class Transaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int transactionId;
+    private Long transactionId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tx_type", nullable = false)
     private Transaction_Type transactionType;
 
     @Column(nullable = false)
-    private Double amount;
+    private BigDecimal amount;
 
     @Column(name = "occurred_at", nullable = false)
     private LocalDateTime createdAt;

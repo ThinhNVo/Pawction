@@ -4,5 +4,5 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/pawction?createDatabaseIfNotExist=true
     username: root
-    password: P@ssw0rd
+    password: Adhikari12
 

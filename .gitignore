@@ -1,2 +1,3 @@
-**/pom.xml
-**/application.yaml
+/target/
+application.yaml
+pom.xml

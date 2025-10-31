@@ -1,3 +1,13 @@
+// const stompClient = new StompJs.Client({
+//     brokerURL: 'ws://localhost:8080/gs-guide-websocket'
+// });
+
+// const socket = new SockJS('http://localhost:8080/gs-guide-websocket');
+// const stompClient = Stomp.over(socket);
+
+// const socket = new SockJS('http://localhost:8080/gs-guide-websocket');
+// const stompClient = StompJs.Stomp.over(socket);
+
 const stompClient = new StompJs.Client({
     brokerURL: 'ws://localhost:8080/gs-guide-websocket'
 });

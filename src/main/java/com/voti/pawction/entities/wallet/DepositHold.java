@@ -2,10 +2,10 @@ package com.voti.pawction.entities.wallet;
 
 import com.voti.pawction.entities.wallet.enums.Status;
 import jakarta.persistence.*;
-import com.voti.pawction.entities.wallet.Account;
 import com.voti.pawction.entities.auction.Auction;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Setter
@@ -27,7 +27,7 @@ public class DepositHold {
     private Status depositStatus;
 
     @Column(name = "amount", nullable = false)
-    private Double amount;
+    private BigDecimal amount;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;

@@ -8,6 +8,8 @@ import com.voti.pawction.entities.pet.Pet;
 
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,10 +28,10 @@ public class Auction {
     private Long auctionId;
 
     @Column(name = "start_price", nullable = false)
-    private Double startPrice;
+    private BigDecimal startPrice;
 
     @Column(name = "highest_bid", nullable = false)
-    private Double highestBid;
+    private BigDecimal highestBid;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)

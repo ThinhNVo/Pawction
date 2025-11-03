@@ -29,7 +29,7 @@ public class Account {
     private Long accountId;
 
     @Column(name="balance", nullable = false)
-    private BigDecimal balance;
+    private BigDecimal balance=BigDecimal.ZERO;
 
     @Column(name="created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -44,7 +44,7 @@ public class Account {
     //Account to DepositHold Relation
     @Builder.Default
     @OneToMany(mappedBy = "account", cascade ={CascadeType.PERSIST,
-            CascadeType.REMOVE}, fetch = FetchType.LAZY)
+            CascadeType.REMOVE}, fetch = FetchType.LAZY, orphanRemoval = true)
     @ToString.Exclude
     private List<DepositHold> holds = new ArrayList<>();
 
@@ -55,9 +55,7 @@ public class Account {
     @ToString.Exclude
     private User user;
 
-    //Method to communicate with transaction
     public Transaction deposit(BigDecimal amount) {
-        //amount = requirePositive(amount);
         balance = balance.add(amount);
         return addTransaction(Transaction_Type.DEPOSIT, amount);
     }
@@ -67,18 +65,20 @@ public class Account {
         return  addTransaction(Transaction_Type.WITHDRAWAL, amount);
     }
 
-
-
     //Helper methods
-    public DepositHold addHold(Auction auction, Double amount) {
+    public DepositHold addHold(Auction auction, BigDecimal amount) {
+        if (auction == null) throw new IllegalArgumentException("auction is required");
+        if (amount == null || amount.signum() <= 0) throw new IllegalArgumentException("amount must be positive");
+
         DepositHold hold = new DepositHold();
+        hold.setAccount(this);
         auction.addDepositHold(hold);
         hold.setAmount(amount);
         hold.setDepositStatus(Status.HELD);
         hold.setCreatedAt(LocalDateTime.now());
         hold.setUpdatedAt(LocalDateTime.now());
-        hold.setAccount(this);
         holds.add(hold);
+        setBalance(getBalance().subtract(hold.getAmount()));
         return hold;
     }
 

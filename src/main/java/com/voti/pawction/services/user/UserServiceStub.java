@@ -16,6 +16,7 @@ import com.voti.pawction.repositories.pet.PetRepository;
 import com.voti.pawction.repositories.wallet.AccountRepository;
 import com.voti.pawction.repositories.wallet.DepositHoldRepository;
 import com.voti.pawction.repositories.wallet.TransactionRepository;
+import com.voti.pawction.services.wallet.AccountServiceStub;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ public class UserServiceStub {
     private final BidRepository bidRepository;
     private final AuctionRepository auctionRepository;
     private final AccountRepository accountRepository;
+    private final AccountServiceStub accService;
     private final DepositHoldRepository depositHoldRepository;
     private final TransactionRepository transactionRepository;
 
@@ -105,7 +107,7 @@ public class UserServiceStub {
 //
 //   }
    @Transactional
-   public void overallProcess()
+   public void createAuction()
    {
        System.out.println("=== overallProcess START ===");
        var user = User.builder()
@@ -146,8 +148,8 @@ public class UserServiceStub {
                pet.getPetId(), pet.getPetName(), pet.getPetCategory());
 
        var auction = Auction.builder()
-           .startPrice(20.0)
-           .highestBid(0.0)
+           .startPrice(BigDecimal.valueOf(15))
+           .highestBid(BigDecimal.valueOf(0))
            .status(Auction_Status.LIVE)
            .createdAt(LocalDateTime.now())
            .updatedAt(LocalDateTime.now())
@@ -177,35 +179,31 @@ public class UserServiceStub {
        userRepository.saveAll(users);
    }
 
-
+   // User created -> account created -> user made a deposit transaction and account balance go up
+   // -> User find an auction -> User join an auction and deposit hold is created with HELD and balance goes down ->
+   // User can request list of transaction, list of all active deposit hold on different auction,
+   // and view getAvailable for actual remaining spendable funds
    @Transactional
-   public void placeBid () {
+   public void placeBidAsQualifiedUser () {
+       // create user and account
        var user1 =userRepository.save(User.builder().name("Alice Seller").email("alice.seller@example.com").passwordHash("secure123").build());
-       var user2 =userRepository.save(User.builder().name("Bob Bidder").email("bob.bidder@example.com").passwordHash("secure123").build());
-
-
        var account1=accountRepository.save(Account.builder().balance(BigDecimal.valueOf(0)).createdAt(LocalDateTime.now()).user(user1).build());
-       var account2=accountRepository.save(Account.builder().balance(BigDecimal.valueOf(0)).createdAt(LocalDateTime.now()).user(user2).build());
-
 
        System.out.println(account1);
-       System.out.println(account2);
        System.out.println(user1);
-       System.out.println(user2);
 
-       Transaction transaction1 = account1.deposit(BigDecimal.valueOf(15));
-       Transaction transaction2 = account2.deposit(BigDecimal.valueOf(20));
+       //User make a deposit transaction
+       System.out.println(accService.deposit(2L, BigDecimal.valueOf(15)));
+       System.out.println(accService.getTransactions(2L ));
 
+       //finding auctions
        var auction = auctionRepository.findById(1L).orElseThrow();
 
-       DepositHold holdAcc1 = account1.addHold(auction, 15.0);
-       DepositHold holdAcc2 = account2.addHold(auction, 15.0);
+       DepositHold holdAcc1 = account1.addHold(auction, BigDecimal.valueOf(15));
 
        Bid bid1 = Bid.create(user1, auction, 50.00);
-       Bid bid2 = Bid.create(user2, auction, 100.00);
 
        bidRepository.save(bid1);
-       bidRepository.save(bid2);
 
        auctionRepository.save(auction);
 
@@ -217,5 +215,27 @@ public class UserServiceStub {
            System.out.println(d);
        }
 
+   }
+
+   public void  placeBidAsNotQualifiedUser () {
+       var user2 =userRepository.save(User.builder().name("Bob Bidder").email("bob.bidder@example.com").passwordHash("secure123").build());
+       var account2=accountRepository.save(Account.builder().balance(BigDecimal.valueOf(0)).createdAt(LocalDateTime.now()).user(user2).build());
+       Transaction transaction2 = account2.deposit(BigDecimal.valueOf(20));
+       var auction = auctionRepository.findById(1L).orElseThrow();
+
+
+       DepositHold holdAcc2 = account2.addHold(auction, BigDecimal.valueOf(20));
+       Bid bid2 = Bid.create(user2, auction, 100.00);
+       bidRepository.save(bid2);
+
+       auctionRepository.save(auction);
+
+       for (Bid b : auction.getBids()) {
+           System.out.println(b);
+       }
+
+       for (DepositHold d : auction.getDepositHolds()) {
+           System.out.println(d);
+       }
    }
 }

@@ -21,8 +21,8 @@ public class PawctionApplication {
         //userRepository.overallProcess();
 
         //create users to test bidding
-        userRepository.placeBid();
-        //userRepository.createAuctions();
+        //userRepository.createAuction();
+        //userRepository.placeBidAsQualifiedUser();
 
 
     }

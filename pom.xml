@@ -72,6 +72,11 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-mysql</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>1.6.2</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -81,9 +86,9 @@
                 <artifactId>flyway-maven-plugin</artifactId>
                 <version>11.7.2</version>
                 <configuration>
-                    <url>jdbc:mysql://localhost:3306/pawction?createDatabaseIfNotExist=true</url>
+                    <url>jdbc:mysql://localhost:3306/test?createDatabaseIfNotExist=true</url>
                     <user>root</user>
-                    <password>P@ssw0rd</password>
+                    <password>shachin</password>
                     <cleanDisabled>false</cleanDisabled>
                     <locations>filesystem:src/main/resources/db/migration</locations>
                 </configuration>
@@ -97,6 +102,11 @@
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
                             <version>1.18.34</version>
+                        </path>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>1.6.2</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>

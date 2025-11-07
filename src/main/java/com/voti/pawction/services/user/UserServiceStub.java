@@ -21,6 +21,7 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import javax.security.auth.login.AccountNotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -184,7 +185,7 @@ public class UserServiceStub {
    // User can request list of transaction, list of all active deposit hold on different auction,
    // and view getAvailable for actual remaining spendable funds
    @Transactional
-   public void placeBidAsQualifiedUser () {
+   public void placeBidAsQualifiedUser () throws AccountNotFoundException {
        // create user and account
        var user1 =userRepository.save(User.builder().name("Alice Seller").email("alice.seller@example.com").passwordHash("secure123").build());
        var account1=accountRepository.save(Account.builder().balance(BigDecimal.valueOf(0)).createdAt(LocalDateTime.now()).user(user1).build());

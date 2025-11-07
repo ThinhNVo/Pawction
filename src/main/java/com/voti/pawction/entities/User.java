@@ -11,14 +11,14 @@ import lombok.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@Setter
 @Getter
-@AllArgsConstructor
+@Setter
 @NoArgsConstructor
 @Builder
 @ToString
 @Entity
 @Table(name="user")
+@AllArgsConstructor
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -62,12 +62,4 @@ public class User {
         auction.addBid(bid);
     }
 
-
-    /* don't test
-    public void setWinningBid(Auction auction, Bid bid) {
-        auction.setWinningUser(this);
-        auction.setHighestBid(bid.getAmount());
-    }
-
-     */
 }

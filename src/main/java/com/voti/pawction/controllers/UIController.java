@@ -32,7 +32,7 @@ public class UIController {
     }
 
     @GetMapping("/home")
-    public String home(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+    public String showHomePage(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
         if (!isLoggedIn(session)) {
             model.addAttribute("loggedIn", false);
             return "index";

@@ -24,10 +24,10 @@ public class UserRequestController {
     private final UserService userService;
 
     @GetMapping("/login")
-    public String showLoginPage(HttpSession session, Model model) {
+    public String showLoginPage(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
         // If already logged in, redirect to users list
      if (session.getAttribute("loggedInUser") != null) {
-            return "redirect:/";
+            return "redirect:/home";
         }
         model.addAttribute("loginRequest", new LoginRequest());
         return "login";
@@ -44,7 +44,7 @@ public class UserRequestController {
             session.setAttribute("loggedInUser", user);
 
             redirectAttributes.addFlashAttribute("successMessage", "Welcome, " + user.getName() + "!");
-            return "redirect:/";
+            return "redirect:/home";
 
         } catch (UserNotFoundException | InvalidCredentialsException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
@@ -53,7 +53,11 @@ public class UserRequestController {
     }
 
     @GetMapping("/register")
-    public String showRegisterPage(Model model) {
+    public String showRegisterPage(Model model, HttpSession session, RedirectAttributes redirectAttributes) {
+        // If already logged in, redirect to home page
+        if (session.getAttribute("loggedInUser") != null) {
+            return "redirect:/home";
+        }
         model.addAttribute("registerRequest", new RegisterUserRequest());
         return "register";
     }

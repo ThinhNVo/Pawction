@@ -19,16 +19,15 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @AllArgsConstructor
-public class HomeController {
+public class UserRequestController {
 
     private final UserService userService;
-
 
     @GetMapping("/login")
     public String showLoginPage(HttpSession session, Model model) {
         // If already logged in, redirect to users list
      if (session.getAttribute("loggedInUser") != null) {
-            return "redirect:/ui/users";
+            return "redirect:/";
         }
         model.addAttribute("loginRequest", new LoginRequest());
         return "login";
@@ -45,13 +44,12 @@ public class HomeController {
             session.setAttribute("loggedInUser", user);
 
             redirectAttributes.addFlashAttribute("successMessage", "Welcome, " + user.getName() + "!");
-            return "redirect:/ui/users";
+            return "redirect:/";
 
         } catch (UserNotFoundException | InvalidCredentialsException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/login";
         }
-
     }
 
     @GetMapping("/register")
@@ -70,14 +68,19 @@ public class HomeController {
                     registerUserRequest.getEmail(),
                     registerUserRequest.getPassword());
 
-            redirectAttributes.addFlashAttribute("successMessage", "Welcome, " + user.getName() + "!");
+            redirectAttributes.addFlashAttribute("successMessage", "Account Created Successfully! Please log in.");
             return "redirect:/login";
 
         } catch (WeakPasswordException | InvalidCredentialsException | UserEmailExistsException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/register";
         }
+    }
 
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        session.invalidate();
+        return "redirect:/home";
     }
 
     // need home page now

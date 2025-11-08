@@ -13,13 +13,15 @@ import com.voti.pawction.repositories.wallet.AccountRepository;
 import com.voti.pawction.services.user.impl.UserServiceInterface;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
 @Service
 @AllArgsConstructor
-public class UserService implements UserServiceInterface {
+@Slf4j
+public class UserService {
     private final UserRepository userRepository;
     private final AccountRepository accountRepository;
     private final UserMapper userMapper;
@@ -36,7 +38,6 @@ public class UserService implements UserServiceInterface {
      * @exception UserEmailExistsException User email exists
      * @exception WeakPasswordException User's password invalid
      */
-    @Override
     @Transactional
     public UserDto register(String name, String email, String password) {
         if (name.isBlank()) {
@@ -74,7 +75,6 @@ public class UserService implements UserServiceInterface {
      * @exception UserNotFoundException if user email is not found
      * @exception InvalidCredentialsException if user email is not correct
      */
-    @Override
     public UserDto Login(String email, String password) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("Invalid email or password"));
@@ -96,7 +96,7 @@ public class UserService implements UserServiceInterface {
      * @exception UserNotFoundException if User id not found
      * @exception InvalidCredentialsException if old password is the same as new and failed validation
      */
-    @Override
+    @Transactional
     public UserDto ChangePassword(Long userId, String oldPassword, String newPassword) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found by id: " + userId));
@@ -124,7 +124,7 @@ public class UserService implements UserServiceInterface {
      * @param password raw password to validate
      * @throws WeakPasswordException if any rule is violated
      */
-    private void validatePassword(String password) {
+    public void validatePassword(String password) {
         if (password == null || password.length() < 8) {
             throw new WeakPasswordException("Password must be at least 8 characters long");
         }

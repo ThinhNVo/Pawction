@@ -7,20 +7,11 @@ import com.voti.pawction.entities.wallet.DepositHold;
 import com.voti.pawction.entities.wallet.Transaction;
 import jakarta.transaction.Transactional;
 
+import javax.security.auth.login.AccountNotFoundException;
 import java.math.BigDecimal;
 import java.util.List;
 
 public interface AccountServiceInterface {
-
-    // ---- Lookup ----
-    /**
-     * Fetches an account by id or throws if not found.
-     *
-     * @param accountId the account identifier
-     * @return the account entity
-     * @throws java.util.NoSuchElementException if the account doesn't exist
-     */
-    Account get(Long accountId);
 
     /**
      * Returns the current balance stored on the account database.
@@ -128,7 +119,7 @@ public interface AccountServiceInterface {
      * @return list of transactions (possibly empty)
      * @throws IllegalArgumentException if page/size are invalid
      */
-    List<Transaction> getTransactions(Long accountId);
+    List<Transaction> getTransactions(Long accountId) throws AccountNotFoundException;
 
 
 

@@ -44,7 +44,7 @@ public class UserService {
             throw new IllegalArgumentException("Name is required");
         }
 
-        if (email.isBlank() || !email.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
+        if (email.isBlank() || !email.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]{2,}$")) {
             throw new IllegalArgumentException("A valid email is required");
         }
 

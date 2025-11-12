@@ -1,5 +1,5 @@
 package com.voti.pawction.services.user;
-
+import org.springframework.transaction.annotation.Transactional;
 import com.voti.pawction.dtos.response.UserDto;
 import com.voti.pawction.entities.User;
 import com.voti.pawction.entities.wallet.Account;
@@ -11,7 +11,7 @@ import com.voti.pawction.mappers.UserMapper;
 import com.voti.pawction.repositories.UserRepository;
 import com.voti.pawction.repositories.wallet.AccountRepository;
 import com.voti.pawction.services.user.impl.UserServiceInterface;
-import jakarta.transaction.Transactional;
+
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -75,6 +75,7 @@ public class UserService {
      * @exception UserNotFoundException if user email is not found
      * @exception InvalidCredentialsException if user email is not correct
      */
+    @Transactional(readOnly = true)
     public UserDto Login(String email, String password) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("Invalid email or password"));

@@ -75,7 +75,8 @@ Backend Team: Dinesh Adhikari, Thinh Vo
 
 Make sure you have:
 
-- Java 21  
+- Java 21
+- Java SDK: OpenJDK 21
 - Maven
 - SpringBoot  
 

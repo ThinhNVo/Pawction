@@ -1,7 +1,5 @@
 package com.voti.pawction.services.pet;
 
-import com.voti.pawction.dtos.request.CreatePetRequest;
-import com.voti.pawction.dtos.response.PetDto;
 import com.voti.pawction.entities.User;
 import com.voti.pawction.entities.auction.Auction;
 import com.voti.pawction.entities.auction.enums.Auction_Status;
@@ -14,12 +12,8 @@ import com.voti.pawction.entities.wallet.Account;
 import com.voti.pawction.mappers.PetMapper;
 import com.voti.pawction.repositories.UserRepository;
 import com.voti.pawction.repositories.auction.AuctionRepository;
-import com.voti.pawction.repositories.auction.BidRepository;
 import com.voti.pawction.repositories.pet.PetRepository;
 import com.voti.pawction.repositories.wallet.AccountRepository;
-import com.voti.pawction.repositories.wallet.DepositHoldRepository;
-import com.voti.pawction.repositories.wallet.TransactionRepository;
-import com.voti.pawction.services.wallet.AccountServiceStub;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;

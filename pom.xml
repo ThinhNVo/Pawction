@@ -88,7 +88,7 @@
                 <configuration>
                     <url>jdbc:mysql://localhost:3306/test?createDatabaseIfNotExist=true</url>
                     <user>root</user>
-                    <password>shachin</password>
+                    <password>password</password>
                     <cleanDisabled>false</cleanDisabled>
                     <locations>filesystem:src/main/resources/db/migration</locations>
                 </configuration>

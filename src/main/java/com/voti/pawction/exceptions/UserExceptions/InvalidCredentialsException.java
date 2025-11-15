@@ -1,4 +1,4 @@
-package com.voti.pawction.exceptions;
+package com.voti.pawction.exceptions.UserExceptions;
 
 /**
  * Exception thrown when authentication credentials are invalid

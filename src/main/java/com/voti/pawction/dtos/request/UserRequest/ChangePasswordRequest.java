@@ -1,4 +1,4 @@
-package com.voti.pawction.dtos.request;
+package com.voti.pawction.dtos.request.UserRequest;
 
 import lombok.Data;
 

@@ -18,6 +18,15 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+/**
+ * Service class responsible for user registration, authentication,
+ * password changes, and password-policy validation.
+ *
+ * <p>This service coordinates with {@link UserRepository},
+ * {@link AccountRepository}, and {@link UserMapper} to perform
+ * all user-related operations.</p>
+ */
+
 @Service
 @AllArgsConstructor
 @Slf4j

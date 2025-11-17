@@ -1,7 +1,7 @@
 package com.voti.pawction.services.auction.impl;
 
 import com.voti.pawction.dtos.request.AuctionRequest.CreateAuctionRequest;
-import com.voti.pawction.dtos.request.AuctionRequest.UpdateAuctionRequest;
+import com.voti.pawction.dtos.request.AuctionRequest.UpdateAuctionDetailRequest;
 import com.voti.pawction.dtos.response.AuctionDto;
 import com.voti.pawction.entities.auction.Auction;
 
@@ -19,20 +19,20 @@ public interface AuctionServiceInterface {
     AuctionDto create(Long sellingUserId, Long petId, CreateAuctionRequest request);
 
     /**
-     * Update mutable fields (title, description, endTime, minIncrement, etc.).
+     * Update mutable fields (pet information, description and endTime).
      * Guard illegal transitions (e.g., changing startPrice after LIVE).
      */
-    AuctionDto update(UpdateAuctionRequest request);
+    AuctionDto update(Long auctionId, Long petId, UpdateAuctionDetailRequest request);
 
     /**
-     * Seller ends the auction early (if policy allows). Transitions LIVE -> ENDED.
+     * Seller ends the auction early (if policy allows). Transitions LIVE -> SETTLE.
      * Triggers winner selection & settlement coordination.
      */
     AuctionDto settle(Long auctionId, Long sellerId, LocalDateTime endedAt);
 
     /**
      * Seller cancels the auction. Allowed only before first valid bid (policy).
-     * Transitions DRAFT/LIVE -> CANCELED. Notifies watchers/bidders.
+     * Transitions LIVE -> CANCELED. Notifies watchers/bidders.
      */
     void cancel(Long auctionId, Long sellerId, String reason);
 

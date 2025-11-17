@@ -2,12 +2,11 @@ package com.voti.pawction.dtos.request.AuctionRequest;
 
 import lombok.Data;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
-public class UpdateAuctionRequest {
-    private BigDecimal highestPrice;
-    private LocalDateTime updatedAt;
+public class UpdateAuctionDetailRequest {
+    private String description;
     private LocalDateTime endedAt;
+    private LocalDateTime updatedAt;
 }

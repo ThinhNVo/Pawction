@@ -1,9 +1,13 @@
 package com.voti.pawction.services.auction.impl;
 
 import com.voti.pawction.dtos.request.AuctionRequest.CreateAuctionRequest;
+import com.voti.pawction.dtos.request.AuctionRequest.UpdateAuctionRequest;
 import com.voti.pawction.dtos.response.AuctionDto;
+import com.voti.pawction.entities.auction.Auction;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 public interface AuctionServiceInterface {
     // -------- Creation / lifecycle --------
@@ -24,7 +28,7 @@ public interface AuctionServiceInterface {
      * Seller ends the auction early (if policy allows). Transitions LIVE -> ENDED.
      * Triggers winner selection & settlement coordination.
      */
-    AuctionOutcomeDto end(Long auctionId, Long sellerId, LocalDateTime endedAt);
+    AuctionDto settle(Long auctionId, Long sellerId, LocalDateTime endedAt);
 
     /**
      * Seller cancels the auction. Allowed only before first valid bid (policy).
@@ -44,24 +48,14 @@ public interface AuctionServiceInterface {
     /**
      * Idempotent close for one auction (used by scheduler and manual retry).
      */
-    Optional<AuctionOutcomeDto> closeIfExpired(Long auctionId);
+    Optional<AuctionDto> closeIfExpired(Long auctionId);
 
     // -------- Queries --------
 
     /**
      * Find a single auction with full details.
      */
-    Optional<AuctionDto> findById(Long auctionId);
-
-    /**
-     * Active auctions with filters (category, text, price range, seller, etc.).
-     * Only returns LIVE by default unless status is provided in the filter.
-     */
-    Page<AuctionSummaryDto> search(AuctionQuery filter, Pageable pageable);
-
-    Page<AuctionSummaryDto> listBySeller(Long sellerId, Pageable pageable);
-
-    Page<AuctionSummaryDto> listByStatus(AuctionStatus status, Pageable pageable);
+    Auction findById(Long auctionId);
 
     // -------- Domain helpers (bidding rules) --------
 
@@ -88,6 +82,6 @@ public interface AuctionServiceInterface {
      * decide winner (if any), create payment deadline/hold instructions, etc.
      * Safe to call multiple times; must be idempotent.
      */
-    AuctionOutcomeDto settle(Long auctionId);
+    AuctionDto end(Long auctionId);
 }
 

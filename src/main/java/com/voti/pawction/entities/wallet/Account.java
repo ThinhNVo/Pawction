@@ -1,18 +1,16 @@
 package com.voti.pawction.entities.wallet;
 
 import com.voti.pawction.entities.auction.Auction;
-import com.voti.pawction.entities.pet.Pet;
 import com.voti.pawction.entities.wallet.enums.Status;
 import com.voti.pawction.entities.wallet.enums.Transaction_Type;
 import jakarta.persistence.*;
 import lombok.*;
 import com.voti.pawction.entities.User;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import com.voti.pawction.entities.wallet.Transaction;
-import com.voti.pawction.entities.wallet.DepositHold;
 
 @Setter
 @Getter
@@ -22,54 +20,57 @@ import com.voti.pawction.entities.wallet.DepositHold;
 @ToString
 @Entity
 @Table(name = "account")
-
 public class Account {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long accountId;
 
     @Column(name="balance", nullable = false)
-    private BigDecimal balance=BigDecimal.ZERO;
+    private BigDecimal balance = BigDecimal.ZERO;
 
     @Column(name="created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    //Account to Transaction Relation
     @Builder.Default
-    @OneToMany(mappedBy = "account", cascade = {CascadeType.PERSIST,
-            CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "account", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.LAZY)
     @ToString.Exclude
     private List<Transaction> transactions = new ArrayList<>();
 
-    //Account to DepositHold Relation
     @Builder.Default
-    @OneToMany(mappedBy = "account", cascade ={CascadeType.PERSIST,
-            CascadeType.REMOVE}, fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(mappedBy = "account", cascade ={CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.LAZY, orphanRemoval = true)
     @ToString.Exclude
     private List<DepositHold> holds = new ArrayList<>();
 
-    //Account to User Relation
     @MapsId
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "account_id")
     @ToString.Exclude
     private User user;
 
+    // ---- Money movements ----
     public Transaction deposit(BigDecimal amount) {
         balance = balance.add(amount);
         return addTransaction(Transaction_Type.DEPOSIT, amount);
     }
 
     public Transaction withdraw(BigDecimal amount) {
+        if (!canAfford(amount)) {
+            throw new IllegalArgumentException("Insufficient available funds");
+        }
         balance = balance.subtract(amount);
-        return  addTransaction(Transaction_Type.WITHDRAWAL, amount);
+        return addTransaction(Transaction_Type.WITHDRAWAL, amount);
     }
 
-    //Helper methods
-    public DepositHold addHold(Auction auction, BigDecimal amount) {
-        if (auction == null) throw new IllegalArgumentException("auction is required");
-        if (amount == null || amount.signum() <= 0) throw new IllegalArgumentException("amount must be positive");
+    public boolean canAfford(BigDecimal amount) {
+        BigDecimal held = holds.stream()
+                .filter(h -> h.getDepositStatus() == Status.HELD)
+                .map(DepositHold::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return balance.subtract(held).compareTo(amount) >= 0;
+    }
 
+    public DepositHold addHold(Auction auction, BigDecimal amount) {
+        if (!canAfford(amount)) throw new IllegalArgumentException("Insufficient funds to place hold");
         DepositHold hold = new DepositHold();
         hold.setAccount(this);
         auction.addDepositHold(hold);
@@ -78,7 +79,6 @@ public class Account {
         hold.setCreatedAt(LocalDateTime.now());
         hold.setUpdatedAt(LocalDateTime.now());
         holds.add(hold);
-        setBalance(getBalance().subtract(hold.getAmount()));
         return hold;
     }
 

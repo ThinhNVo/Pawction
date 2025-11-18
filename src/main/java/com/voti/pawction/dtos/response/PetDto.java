@@ -9,7 +9,7 @@ import lombok.Getter;
 public class PetDto {
     private Long petId;
     private String petName;
-    private String petType;
+    private Category petCategory;
     private int petAgeMonths;
     private Sex petSex;
     private Double petWeight;

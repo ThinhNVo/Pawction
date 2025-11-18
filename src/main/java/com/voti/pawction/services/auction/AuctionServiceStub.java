@@ -19,7 +19,6 @@ import com.voti.pawction.repositories.auction.AuctionRepository;
 import com.voti.pawction.repositories.pet.PetRepository;
 import com.voti.pawction.services.auction.impl.AuctionServiceInterface;
 import lombok.AllArgsConstructor;
-import lombok.var;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;

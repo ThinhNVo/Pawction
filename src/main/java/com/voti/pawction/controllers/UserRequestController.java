@@ -1,12 +1,12 @@
 package com.voti.pawction.controllers;
 
-import com.voti.pawction.dtos.request.LoginRequest;
-import com.voti.pawction.dtos.request.RegisterUserRequest;
+import com.voti.pawction.dtos.request.UserRequest.LoginRequest;
+import com.voti.pawction.dtos.request.UserRequest.RegisterUserRequest;
 import com.voti.pawction.dtos.response.UserDto;
-import com.voti.pawction.exceptions.InvalidCredentialsException;
-import com.voti.pawction.exceptions.UserEmailExistsException;
-import com.voti.pawction.exceptions.UserNotFoundException;
-import com.voti.pawction.exceptions.WeakPasswordException;
+import com.voti.pawction.exceptions.UserExceptions.InvalidCredentialsException;
+import com.voti.pawction.exceptions.UserExceptions.UserEmailExistsException;
+import com.voti.pawction.exceptions.UserExceptions.UserNotFoundException;
+import com.voti.pawction.exceptions.UserExceptions.WeakPasswordException;
 import com.voti.pawction.services.user.UserService;
 import jakarta.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;

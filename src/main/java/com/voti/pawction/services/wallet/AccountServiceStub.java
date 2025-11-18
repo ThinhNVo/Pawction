@@ -5,7 +5,10 @@ import com.voti.pawction.entities.wallet.Account;
 import com.voti.pawction.entities.wallet.DepositHold;
 import com.voti.pawction.entities.wallet.Transaction;
 import com.voti.pawction.entities.wallet.enums.Status;
-import com.voti.pawction.exceptions.*;
+import com.voti.pawction.exceptions.AccountExceptions.HoldNotFoundException;
+import com.voti.pawction.exceptions.AccountExceptions.InvalidAmountException;
+import com.voti.pawction.exceptions.AuctionExceptions.AuctionIdNotFoundException;
+import com.voti.pawction.exceptions.AuctionExceptions.InvalidAuctionException;
 import com.voti.pawction.repositories.auction.AuctionRepository;
 import com.voti.pawction.repositories.wallet.AccountRepository;
 import com.voti.pawction.repositories.wallet.DepositHoldRepository;
@@ -15,7 +18,7 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import com.voti.pawction.exceptions.AccountNotFoundException;
+import com.voti.pawction.exceptions.AccountExceptions.AccountNotFoundException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
@@ -51,9 +54,9 @@ public class AccountServiceStub implements AccountServiceInterface {
             throw new InvalidAmountException("insufficient funds");
         }
 
-        var auction = findAuctionById(auctionId);
+        var auction = getAuctionOrThrow(auctionId);
 
-        var a = getOrThrow(accountId);
+        var a = getAccountOrThrow(accountId);
         var hold = holdRepository.save(a.addHold(auction, amount));
         accountRepository.save(a);
 
@@ -73,9 +76,9 @@ public class AccountServiceStub implements AccountServiceInterface {
      */
     @Override
     public DepositHold releaseHold(Long accountId, Long auctionId) {
-        var auctionHold = findAuctionById(auctionId).getDepositHolds();
+        var auctionHold = getAuctionOrThrow(auctionId).getDepositHolds();
 
-        var a = getOrThrow(accountId);
+        var a = getAccountOrThrow(accountId);
 
         var releaseHold = auctionHold.stream()
                 .filter(h -> Objects.equals(h.getAccount().getAccountId(), accountId))
@@ -102,10 +105,10 @@ public class AccountServiceStub implements AccountServiceInterface {
      */
     @Override
     public DepositHold forfeitHold(Long accountId, Long auctionId) {
-        var auctionHold = findAuctionById(auctionId).getDepositHolds();
+        var auctionHold = getAuctionOrThrow(auctionId).getDepositHolds();
 
         var penaltyHold = auctionHold.stream()
-                .filter(h -> Objects.equals(h.getAccount(), getOrThrow(accountId)))
+                .filter(h -> Objects.equals(h.getAccount(), getAccountOrThrow(accountId)))
                 .filter(h -> h.getDepositStatus() == Status.HELD)
                 .findFirst()
                 .orElseThrow(() -> new HoldNotFoundException("Active hold not found for account on this auction"));
@@ -127,7 +130,7 @@ public class AccountServiceStub implements AccountServiceInterface {
     @Override
     public Transaction deposit(Long accountId, BigDecimal amount) {
         requirePositive(amount);
-        Account a = getOrThrow(accountId);
+        Account a = getAccountOrThrow(accountId);
         Transaction deposit = txRepository.save(a.deposit(amount));
         accountRepository.save(a);
         return deposit;
@@ -151,7 +154,7 @@ public class AccountServiceStub implements AccountServiceInterface {
         if (getAvailable(accountId).compareTo(amount) < 0) {
             throw new InvalidAmountException("insufficient available funds");
         }
-        var a = getOrThrow(accountId);
+        var a = getAccountOrThrow(accountId);
         Transaction withdraw = a.withdraw(amount);
         accountRepository.save(a);
         return withdraw;
@@ -166,7 +169,7 @@ public class AccountServiceStub implements AccountServiceInterface {
      */
     @Override
     public BigDecimal getBalance(Long accountId) {
-        return getOrThrow(accountId).getBalance();
+        return getAccountOrThrow(accountId).getBalance();
     }
 
     /**
@@ -180,7 +183,7 @@ public class AccountServiceStub implements AccountServiceInterface {
      */
     @Override
     public BigDecimal getAvailable(Long accountId) {
-        BigDecimal available = accountRepository.computeAvailable(getOrThrow(accountId).getAccountId());
+        BigDecimal available = accountRepository.computeAvailable(getAccountOrThrow(accountId).getAccountId());
         if (available != null) return available;
         return BigDecimal.ZERO;
     }
@@ -194,7 +197,7 @@ public class AccountServiceStub implements AccountServiceInterface {
      */
     @Override
     public List<DepositHold> getHolds(Long accountId) {
-        return getOrThrow(accountId).getHolds();
+        return getAccountOrThrow(accountId).getHolds();
     }
 
     /**
@@ -234,7 +237,7 @@ public class AccountServiceStub implements AccountServiceInterface {
      * @return the account entity
      * @throws AccountNotFoundException if account is not found by id
      */
-    private Account getOrThrow(Long accountId) {
+    private Account getAccountOrThrow(Long accountId) {
         return accountRepository.findById(accountId)
                 .orElseThrow(()-> new AccountNotFoundException("Account not found by id: " + accountId));
     }
@@ -246,7 +249,7 @@ public class AccountServiceStub implements AccountServiceInterface {
      * @return the account entity
      * @throws AuctionIdNotFoundException if the account doesn't exist
      */
-    private Auction findAuctionById(Long auctionId) {
+    private Auction getAuctionOrThrow(Long auctionId) {
         return auctionRepository.findById(auctionId)
                 .orElseThrow(()-> new AuctionIdNotFoundException("Auction not found by id: " + auctionId));
     }
@@ -261,6 +264,6 @@ public class AccountServiceStub implements AccountServiceInterface {
      */
     @Override
     public List<Transaction> getTransactions(Long accountId) {
-        return getOrThrow(accountId).getTransactions();
+        return getAccountOrThrow(accountId).getTransactions();
     }
 }

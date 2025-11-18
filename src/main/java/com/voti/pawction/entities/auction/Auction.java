@@ -33,6 +33,9 @@ public class Auction {
     @Column(name = "highest_bid", nullable = false)
     private BigDecimal highestBid;
 
+    @Column(name= "description", nullable = false)
+    private String description;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private Auction_Status status;

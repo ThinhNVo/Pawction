@@ -1,20 +1,10 @@
 package com.voti.pawction.services.user.impl;
 
-import com.voti.pawction.dtos.request.ChangePasswordRequest;
-import com.voti.pawction.dtos.request.LoginRequest;
-import com.voti.pawction.dtos.request.RegisterUserRequest;
-import com.voti.pawction.dtos.request.UpdateUserRequest;
 import com.voti.pawction.dtos.response.UserDto;
-import com.voti.pawction.entities.User;
-import com.voti.pawction.entities.wallet.Account;
-import com.voti.pawction.entities.wallet.DepositHold;
-import com.voti.pawction.exceptions.InvalidCredentialsException;
-import com.voti.pawction.exceptions.UserEmailExistsException;
-import com.voti.pawction.exceptions.UserNotFoundException;
-import com.voti.pawction.exceptions.WeakPasswordException;
-
-import java.util.List;
-import java.util.Optional;
+import com.voti.pawction.exceptions.UserExceptions.InvalidCredentialsException;
+import com.voti.pawction.exceptions.UserExceptions.UserEmailExistsException;
+import com.voti.pawction.exceptions.UserExceptions.UserNotFoundException;
+import com.voti.pawction.exceptions.UserExceptions.WeakPasswordException;
 
 public interface UserServiceInterface {
     /**

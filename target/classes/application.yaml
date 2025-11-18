@@ -4,7 +4,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/pawction?createDatabaseIfNotExist=true
     username: root
-    password: password
+    password: P@ssw0rd
   jpa:
     show-sql: true
   mvc:

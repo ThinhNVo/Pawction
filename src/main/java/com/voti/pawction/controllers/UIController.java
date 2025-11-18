@@ -1,6 +1,6 @@
 package com.voti.pawction.controllers;
 
-import com.voti.pawction.dtos.request.LoginRequest;
+import com.voti.pawction.dtos.request.UserRequest.LoginRequest;
 import com.voti.pawction.dtos.response.UserDto;
 import com.voti.pawction.mappers.UserMapper;
 import com.voti.pawction.repositories.UserRepository;

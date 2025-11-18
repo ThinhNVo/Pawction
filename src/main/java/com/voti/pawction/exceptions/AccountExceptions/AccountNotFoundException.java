@@ -1,4 +1,4 @@
-package com.voti.pawction.exceptions;
+package com.voti.pawction.exceptions.AccountExceptions;
 
 public class AccountNotFoundException extends RuntimeException {
     public AccountNotFoundException(String message) {

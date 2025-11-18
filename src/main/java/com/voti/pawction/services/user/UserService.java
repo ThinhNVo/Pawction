@@ -3,10 +3,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.voti.pawction.dtos.response.UserDto;
 import com.voti.pawction.entities.User;
 import com.voti.pawction.entities.wallet.Account;
-import com.voti.pawction.exceptions.InvalidCredentialsException;
-import com.voti.pawction.exceptions.UserEmailExistsException;
-import com.voti.pawction.exceptions.UserNotFoundException;
-import com.voti.pawction.exceptions.WeakPasswordException;
+import com.voti.pawction.exceptions.UserExceptions.InvalidCredentialsException;
+import com.voti.pawction.exceptions.UserExceptions.UserEmailExistsException;
+import com.voti.pawction.exceptions.UserExceptions.UserNotFoundException;
+import com.voti.pawction.exceptions.UserExceptions.WeakPasswordException;
 import com.voti.pawction.mappers.UserMapper;
 import com.voti.pawction.repositories.UserRepository;
 import com.voti.pawction.repositories.wallet.AccountRepository;
@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 @Service
 @AllArgsConstructor
 @Slf4j
-public class UserService {
+public class UserService implements UserServiceInterface {
     private final UserRepository userRepository;
     private final AccountRepository accountRepository;
     private final UserMapper userMapper;

@@ -1,5 +1,6 @@
 package com.voti.pawction.entities.pet;
 
+import com.voti.pawction.entities.auction.Auction;
 import com.voti.pawction.entities.pet.enums.*;
 import jakarta.persistence.*;
 import lombok.*;
@@ -63,12 +64,12 @@ public class Pet {
     @Column(name = "primary_photo_url", nullable = false)
     public String primaryPhotoUrl;
 
-    /*Pet to Auction Relationship
+    //Pet to Auction Relationship
     @MapsId
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "pet_id")
     @ToString.Exclude
     private Auction auction;
 
-     */
+
 }

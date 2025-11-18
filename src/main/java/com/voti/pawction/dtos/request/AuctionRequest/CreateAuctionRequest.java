@@ -11,9 +11,7 @@ import java.time.LocalDateTime;
 @Data
 public class CreateAuctionRequest {
     private BigDecimal startPrice;
-    private BigDecimal highestPrice;
-    private Auction_Status status;
+    private String description;
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
     private LocalDateTime endedAt;
 }

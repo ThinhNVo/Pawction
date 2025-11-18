@@ -12,6 +12,7 @@ import com.voti.pawction.entities.wallet.Account;
 import com.voti.pawction.entities.wallet.DepositHold;
 import com.voti.pawction.entities.wallet.Transaction;
 import com.voti.pawction.entities.wallet.enums.Status;
+import com.voti.pawction.exceptions.AccountExceptions.InvalidAmountException;
 import com.voti.pawction.repositories.UserRepository;
 import com.voti.pawction.repositories.auction.AuctionRepository;
 import com.voti.pawction.repositories.pet.PetRepository;
@@ -112,6 +113,7 @@ class AccountServiceTest {
         // If your entity uses Double, replace with 20.0 / 0.0
         auction.setStartPrice(new BigDecimal("20.00"));
         auction.setHighestBid(new BigDecimal("0.00"));
+        auction.setDescription("Dog auction");
         auction.setStatus(Auction_Status.LIVE);
         auction.setCreatedAt(now);
         auction.setUpdatedAt(now);
@@ -164,7 +166,7 @@ class AccountServiceTest {
     @DisplayName("withdraw: insufficient funds throws")
     void withdraw_insufficientFunds_throws() {
         // No seed deposit
-        var ex = assertThrows(IllegalStateException.class,
+        var ex = assertThrows(InvalidAmountException.class,
                 () -> accountService.withdraw(accountId, new BigDecimal("150.00")));
         assertTrue(ex.getMessage().toLowerCase().contains("insufficient"));
     }
@@ -238,11 +240,11 @@ class AccountServiceTest {
     @Transactional
     void validation_negativeOrZeroAmounts_rejected() {
         assertAll(
-                () -> assertThrows(IllegalArgumentException.class,
+                () -> assertThrows(InvalidAmountException.class,
                         () -> accountService.deposit(accountId, new BigDecimal("-1.00"))),
-                () -> assertThrows(IllegalArgumentException.class,
+                () -> assertThrows(InvalidAmountException.class,
                         () -> accountService.deposit(accountId, new BigDecimal("0.00"))),
-                () -> assertThrows(IllegalArgumentException.class,
+                () -> assertThrows(InvalidAmountException.class,
                         () -> accountService.withdraw(accountId, new BigDecimal("0.00")))
                 );
 

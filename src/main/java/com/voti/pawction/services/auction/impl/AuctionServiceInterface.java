@@ -25,16 +25,16 @@ public interface AuctionServiceInterface {
     AuctionDto update(Long auctionId, Long petId, UpdateAuctionDetailRequest request);
 
     /**
-     * Seller ends the auction early (if policy allows). Transitions LIVE -> SETTLE.
+     * Seller ends the auction early. Transitions LIVE -> SETTLE.
      * Triggers winner selection & settlement coordination.
      */
-    AuctionDto settle(Long auctionId, Long sellerId, LocalDateTime endedAt);
+    AuctionDto settle(Long auctionId);
 
     /**
      * Seller cancels the auction. Allowed only before first valid bid (policy).
      * Transitions LIVE -> CANCELED. Notifies watchers/bidders.
      */
-    void cancel(Long auctionId, Long sellerId, String reason);
+    void cancel(Long auctionId, String reason);
 
     // -------- Scheduler / expiry handling --------
 
@@ -43,19 +43,8 @@ public interface AuctionServiceInterface {
      * Sets status=ENDED, picks provisional winner, sets payment deadline,
      * and coordinates with SettlementService. Returns number processed.
      */
-    int closeExpiredAuctions();
+    int closeEndedAuctions();
 
-    /**
-     * Idempotent close for one auction (used by scheduler and manual retry).
-     */
-    Optional<AuctionDto> closeIfExpired(Long auctionId);
-
-    // -------- Queries --------
-
-    /**
-     * Find a single auction with full details.
-     */
-    Auction findById(Long auctionId);
 
     // -------- Domain helpers (bidding rules) --------
 

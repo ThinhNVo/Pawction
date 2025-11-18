@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${product.name}">Product View</title>
+    <style>
+        .container {
+            display: flex;
+            margin: 20px;
+        }
+        .image-section {
+            flex: 1;
+            padding: 10px;
+        }
+        .image-section img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ccc;
+        }
+        .info-section {
+            flex: 2;
+            padding: 10px;
+        }
+        .bid-form {
+            margin-top: 20px;
+        }
+        .stop-auction {
+            margin-top: 20px;
+            background: #f8d7da;
+            padding: 10px;
+            border: 1px solid #f5c2c7;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Product Image -->
+    <div class="image-section">
+        <img th:src="@{${product.imageUrl}}" th:alt="${product.name}">
+    </div>
+
+    <!-- Product Information -->
+    <div class="info-section">
+        <h1 th:text="${product.name}">Product Name</h1>
+        <p th:text="${product.description}">Product Description</p>
+        <p><strong>Current Price:</strong> $<span th:text="${product.currentPrice}"></span></p>
+        <p><strong>Auction Ends:</strong> <span th:text="${product.endDate}"></span></p>
+
+        <!-- Conditional Bidding -->
+        <div class="bid-form">
+            <!-- If user has NOT bid yet -->
+            <div th:if="${!userHasBid}">
+                <form th:action="@{/bid/place}" method="post">
+                    <input type="hidden" th:name="productId" th:value="${product.id}">
+                    <label for="bidAmount">Your Bid:</label>
+                    <input type="number" id="bidAmount" name="bidAmount" min="1" required>
+                    <button type="submit">Place Bid</button>
+                </form>
+            </div>
+
+            <!-- If user HAS already bid -->
+            <div th:if="${userHasBid}">
+                <form th:action="@{/bid/increase}" method="post">
+                    <input type="hidden" th:name="productId" th:value="${product.id}">
+                    <p>You have already bid: $<span th:text="${userBidAmount}"></span></p>
+                    <label for="newBidAmount">Increase Bid:</label>
+                    <input type="number" id="newBidAmount" name="newBidAmount" min="1" required>
+                    <button type="submit">Increase Bid</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- If user is the auction creator -->
+        <div class="stop-auction" th:if="${isAuctionCreator}">
+            <form th:action="@{/auction/stop}" method="post">
+                <input type="hidden" th:name="productId" th:value="${product.id}">
+                <p>You created this auction.</p>
+                <button type="submit" style="background-color: red; color: white;">Stop Auction</button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

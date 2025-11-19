@@ -7,7 +7,7 @@ import com.voti.pawction.entities.wallet.Transaction;
 import com.voti.pawction.entities.wallet.enums.Status;
 import com.voti.pawction.exceptions.AccountExceptions.HoldNotFoundException;
 import com.voti.pawction.exceptions.AccountExceptions.InvalidAmountException;
-import com.voti.pawction.exceptions.AuctionExceptions.AuctionIdNotFoundException;
+import com.voti.pawction.exceptions.AuctionExceptions.AuctionNotFoundException;
 import com.voti.pawction.exceptions.AuctionExceptions.InvalidAuctionException;
 import com.voti.pawction.repositories.auction.AuctionRepository;
 import com.voti.pawction.repositories.wallet.AccountRepository;
@@ -44,7 +44,7 @@ public class AccountServiceStub implements AccountServiceInterface {
      * @throws IllegalArgumentException if amount is null/non-positive
      * @throws AccountNotFoundException if account is not found by id
      * @throws InvalidAmountException    if insufficient available funds
-     * @throws AuctionIdNotFoundException if not auction id is found
+     * @throws AuctionNotFoundException if not auction id is found
      */
     @Override
     public DepositHold placeHold(Long accountId, Long auctionId, BigDecimal amount) {
@@ -70,7 +70,7 @@ public class AccountServiceStub implements AccountServiceInterface {
      * @param accountId the account identifier
      * @param auctionId the auction identifier
      * @return the updated hold
-     * @throws AuctionIdNotFoundException if no auction is found
+     * @throws AuctionNotFoundException if no auction is found
      * @throws InvalidAuctionException if an active hold is not found
      * @throws AccountNotFoundException if account is not found by id
      */
@@ -247,11 +247,11 @@ public class AccountServiceStub implements AccountServiceInterface {
      *
      * @param auctionId the account identifier
      * @return the account entity
-     * @throws AuctionIdNotFoundException if the account doesn't exist
+     * @throws AuctionNotFoundException if the account doesn't exist
      */
     private Auction getAuctionOrThrow(Long auctionId) {
         return auctionRepository.findById(auctionId)
-                .orElseThrow(()-> new AuctionIdNotFoundException("Auction not found by id: " + auctionId));
+                .orElseThrow(()-> new AuctionNotFoundException("Auction not found by id: " + auctionId));
     }
 
     /**

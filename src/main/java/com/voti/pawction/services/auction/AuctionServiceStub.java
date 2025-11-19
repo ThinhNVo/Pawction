@@ -7,10 +7,9 @@ import com.voti.pawction.entities.User;
 import com.voti.pawction.entities.auction.Auction;
 import com.voti.pawction.entities.auction.enums.Auction_Status;
 import com.voti.pawction.entities.pet.Pet;
-import com.voti.pawction.entities.wallet.Account;
 import com.voti.pawction.exceptions.AccountExceptions.AccountNotFoundException;
 import com.voti.pawction.exceptions.AccountExceptions.InvalidAmountException;
-import com.voti.pawction.exceptions.AuctionExceptions.AuctionIdNotFoundException;
+import com.voti.pawction.exceptions.AuctionExceptions.AuctionNotFoundException;
 import com.voti.pawction.exceptions.PetNotFoundException;
 import com.voti.pawction.exceptions.UserExceptions.UserNotFoundException;
 import com.voti.pawction.mappers.AuctionMapper;
@@ -24,7 +23,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -200,10 +198,10 @@ public class AuctionServiceStub implements AuctionServiceInterface {
      *
      * @param auctionId the account identifier
      * @return the account entity
-     * @throws AuctionIdNotFoundException if the account doesn't exist
+     * @throws AuctionNotFoundException if the account doesn't exist
      */
     private Auction getAuctionOrThrow(Long auctionId) {
         return auctionRepository.findById(auctionId)
-                .orElseThrow(()-> new AuctionIdNotFoundException("Auction not found by id: " + auctionId));
+                .orElseThrow(()-> new AuctionNotFoundException("Auction not found by id: " + auctionId));
     }
 }

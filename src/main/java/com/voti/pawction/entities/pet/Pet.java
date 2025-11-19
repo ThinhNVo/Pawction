@@ -73,7 +73,7 @@ public class Pet {
     private Auction auction;
 
     //Pet to User Relationship
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     @ToString.Exclude
     private User owner;

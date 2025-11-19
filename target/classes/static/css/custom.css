@@ -1,0 +1,25 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+.navbar-nav .nav-link:hover {
+    background-color: rgba(0, 0, 0, 0.05); /* Light gray background */
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.navbar-nav .nav-link:active {
+    background-color: rgba(0, 0, 0, 0.15);
+    transition: background-color 0.2s ease;
+}
+
+.dropdown-menu .dropdown-item:hover {
+    background-color: rgba(0, 0, 0, 0.08); /* Slightly darker hover for dropdowns */
+    transition: background-color 0.2s ease;
+
+}
+
+.dropdown-menu .dropdown-item:active {
+    color: #333;
+    background-color: rgba(0, 0, 0, 0.15);
+    transition: background-color 0.2s ease;
+}

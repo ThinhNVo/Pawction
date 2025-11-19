@@ -1,0 +1,70 @@
+/* Styles specific to the view/details page */
+body {
+    max-width: 800px;
+    margin: 50px auto;
+}
+
+.user-details {
+    background-color: var(--white);
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: var(--box-shadow);
+    margin-bottom: 20px;
+}
+
+.user-avatar {
+    width: 100px;
+    height: 100px;
+    background-color: var(--primary-color);
+    color: var(--white);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    font-weight: bold;
+    margin: 0 auto 20px;
+}
+
+.detail-row {
+    margin: 15px 0;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.detail-label {
+    font-weight: bold;
+    color: #666;
+    display: inline-block;
+    width: 120px;
+}
+
+.detail-value {
+    color: var(--gray-dark);
+}
+
+.actions {
+    margin-top: 30px;
+    text-align: center;
+}
+
+/* API info section */
+.api-info {
+    background-color: var(--gray-light);
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.api-info h3 {
+    margin-top: 0;
+    color: var(--gray-dark);
+}
+
+.api-endpoint {
+    background-color: #e9ecef;
+    padding: 10px;
+    border-radius: var(--border-radius);
+    margin: 10px 0;
+    font-family: monospace;
+}

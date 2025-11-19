@@ -1,13 +1,10 @@
-package com.voti.pawction.dtos.response;
+package com.voti.pawction.dtos.request.PetRequest;
 
 import com.voti.pawction.entities.pet.enums.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 
-@Getter
-@AllArgsConstructor
-public class PetDto {
-    private Long petId;
+@Data
+public class RegisterDogRequest {
     private String petName;
     private int petAgeMonths;
     private Sex petSex;
@@ -17,8 +14,5 @@ public class PetDto {
     private Size dogSize;
     private String dogTemperament;
     private Allergy dogIsHypoallergenic;
-    private String catBreed;
-    private Coat_Length catCoatLength;
-    private Indoor catIndoorOnly;
     private String primaryPhotoUrl;
 }

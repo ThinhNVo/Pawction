@@ -63,7 +63,7 @@ public class User {
 
     //User to Pet Relation
     @Builder.Default
-    @OneToMany(mappedBy = "user_id", cascade = {CascadeType.PERSIST,
+    @OneToMany(mappedBy = "owner", cascade = {CascadeType.PERSIST,
             CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Pet> pets = new ArrayList<>();
 

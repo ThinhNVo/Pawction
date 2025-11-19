@@ -1,5 +1,6 @@
 package com.voti.pawction.entities.pet;
 
+import com.voti.pawction.entities.User;
 import com.voti.pawction.entities.auction.Auction;
 import com.voti.pawction.entities.pet.enums.*;
 import jakarta.persistence.*;
@@ -71,5 +72,9 @@ public class Pet {
     @ToString.Exclude
     private Auction auction;
 
-
+    //Pet to User Relationship
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id")
+    @ToString.Exclude
+    private User owner;
 }

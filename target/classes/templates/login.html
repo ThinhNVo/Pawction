@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{css/form.css}">
+</head>
+<body>
+<div class="container">
+
+    <h1>Pawction Login</h1>
+
+    <div th:if="${successMessage}" class="message success">
+        <span th:text="${successMessage}"></span>
+    </div>
+
+    <div th:if="${errorMessage}" class="message error">
+        <span th:text="${errorMessage}"></span>
+    </div>
+
+    <form method="post" th:action="@{/login}" th:object="${loginRequest}">
+
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email"
+                   th:field="*{email}" required
+                   placeholder="Enter your email"/>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password"
+                   th:field="*{password}" required
+                   placeholder="Enter your password"/>
+        </div>
+
+        <div class="button-group" >
+            <button type="submit" class="btn btn-primary">Login</button>
+        </div>
+
+        <p>Don't have an account? <a th:href="@{/register}">Create one here</a></p>
+
+    </form>
+
+</div>
+</body>
+</html>

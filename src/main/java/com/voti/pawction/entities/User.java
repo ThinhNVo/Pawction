@@ -38,7 +38,6 @@ public class User {
     private Account account;
 
     //User to Auction relation
-    //@OneToMany(mappedBy = "selling_user", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
     @Builder.Default
     @OneToMany(mappedBy = "sellingUser", cascade = {CascadeType.PERSIST,
             CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.LAZY)
@@ -60,6 +59,17 @@ public class User {
         bids.add(bid);
         bid.setUser(this);
         auction.addBid(bid);
+    }
+
+    //User to Pet Relation
+    @Builder.Default
+    @OneToMany(mappedBy = "owner", cascade = {CascadeType.PERSIST,
+            CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Pet> pets = new ArrayList<>();
+
+    public void addPet(Pet pet) {
+        pets.add(pet);
+        pet.setOwner(this);
     }
 
 }

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'Bids for ' + ${product.name}">Bid History</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background: #f9f9f9;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-top: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        table th {
+            background-color: #007bff;
+            color: white;
+        }
+        table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .no-bids {
+            text-align: center;
+            margin-top: 20px;
+            font-style: italic;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1 th:text="'Bid History for ' + ${product.name}">Bid History</h1>
+
+    <!-- If there are bids -->
+    <table th:if="${#lists.size(bids) > 0}">
+        <thead>
+        <tr>
+            <th>Bidder</th>
+            <th>Bid Amount</th>
+            <th>Time</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="bid : ${bids}">
+            <td th:text="${bid.bidderName}">Bidder Name</td>
+            <td>$<span th:text="${bid.amount}">0</span></td>
+            <td th:text="${#temporals.format(bid.time, 'yyyy-MM-dd HH:mm')}">2025-11-19 19:55</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <!-- If no bids -->
+    <p class="no-bids" th:if="${#lists.isEmpty(bids)}">No bids have been placed yet.</p>
+</div>
+</body>
+</html>

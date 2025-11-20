@@ -11,3 +11,11 @@ spring:
     hiddenmethod:
       filter:
         enabled: true
+app:
+  zone-id: "America/New_York"
+
+auction:
+  scheduler:
+    enabled: true
+    cron: "*/30 * * * * *"
+    graceSeconds: 2

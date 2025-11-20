@@ -12,6 +12,5 @@ import java.time.LocalDateTime;
 public class CreateAuctionRequest {
     private BigDecimal startPrice;
     private String description;
-    private LocalDateTime createdAt;
     private LocalDateTime endedAt;
 }

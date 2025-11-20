@@ -30,6 +30,22 @@
             padding: 10px;
             border: 1px solid #f5c2c7;
         }
+        .action-links {
+            margin-top: 25px;
+            display: flex;
+            gap: 15px;
+        }
+        .action-links a {
+            display: inline-block;
+            padding: 10px 15px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .action-links a.history {
+            background: #6c757d;
+        }
     </style>
 </head>
 <body>
@@ -46,7 +62,6 @@
         <p><strong>Current Price:</strong> $<span th:text="${product.currentPrice}"></span></p>
         <p><strong>Auction Ends:</strong> <span th:text="${product.endDate}"></span></p>
 
-        <!-- Conditional Bidding -->
         <div class="bid-form">
             <!-- If user has NOT bid yet -->
             <div th:if="${!userHasBid}">
@@ -78,7 +93,15 @@
                 <button type="submit" style="background-color: red; color: white;">Stop Auction</button>
             </form>
         </div>
+
+        <div class="action-links">
+            <!-- Link to bidding page -->
+            <a th:href="@{/bid(page=true, productId=${product.id})}">Go to Bidding Page</a>
+            <!-- Link to bid history page -->
+            <a th:href="@{/bids/list(productId=${product.id})}" class="history">View Bid History</a>
+        </div>
     </div>
 </div>
 </body>
 </html>
+

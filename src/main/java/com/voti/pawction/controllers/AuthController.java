@@ -19,7 +19,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @AllArgsConstructor
-public class UserRequestController {
+public class AuthController {
 
     private final UserService userService;
 
@@ -43,7 +43,6 @@ public class UserRequestController {
             // Store user in session
             session.setAttribute("loggedInUser", user);
 
-            redirectAttributes.addFlashAttribute("successMessage", "Welcome, " + user.getName() + "!");
             return "redirect:/home";
 
         } catch (UserNotFoundException | InvalidCredentialsException e) {

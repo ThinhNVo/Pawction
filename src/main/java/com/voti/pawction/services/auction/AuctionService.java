@@ -364,7 +364,7 @@ public class AuctionService implements AuctionServiceInterface {
 
     /**
      * Validate that the auction end time is in the future and after creation.
-     * enforce a reasonable duration window (24 hours).
+     * enforce a reasonable duration window (12 hours).
      * Intended to be called during create/update flows while the auction is LIVE.
      *
      * @param createdAt the timestamp the auction was (or will be) created
@@ -380,8 +380,8 @@ public class AuctionService implements AuctionServiceInterface {
             }
 
             if (!Duration.between(createdAt, endedAt)
-                    .equals(Duration.ofHours(24))) {
-                throw new InvalidAuctionException("Auction start time and end time must be 24 hours apart");
+                    .equals(Duration.ofHours(12))) {
+                throw new InvalidAuctionException("Auction start time and end time must be 12 hours apart");
             }
             return;
         }

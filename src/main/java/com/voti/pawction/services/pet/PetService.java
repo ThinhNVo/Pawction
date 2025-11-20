@@ -252,7 +252,7 @@ public class PetService implements PetServiceInterface {
         }
 
         pet.setPetName(request.getPetName());
-        pet.setPetWeight(request.getPetWeight());
+        pet.setPetAgeMonths(request.getPetAgeMonths());
         pet.setPetWeight(request.getPetWeight());
 
         return petMapper.toDto(petRepository.save(pet));

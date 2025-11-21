@@ -5,7 +5,6 @@ import com.voti.pawction.dtos.request.AuctionRequest.UpdateAuctionDetailRequest;
 import com.voti.pawction.dtos.request.AuctionRequest.UpdateAuctionEndTimeRequest;
 import com.voti.pawction.dtos.request.PetRequest.UpdatePetWhenAuctionLiveRequest;
 import com.voti.pawction.dtos.response.AuctionDto;
-import com.voti.pawction.entities.auction.Auction;
 import com.voti.pawction.exceptions.AccountExceptions.InvalidAmountException;
 import com.voti.pawction.exceptions.AuctionExceptions.AuctionInvalidStateException;
 import com.voti.pawction.exceptions.AuctionExceptions.InvalidAuctionException;
@@ -14,7 +13,6 @@ import com.voti.pawction.exceptions.UserExceptions.UserNotFoundException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 public interface AuctionServiceInterface {
     // -------- Creation / lifecycle --------

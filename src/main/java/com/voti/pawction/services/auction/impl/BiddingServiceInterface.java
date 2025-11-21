@@ -11,7 +11,6 @@ import com.voti.pawction.exceptions.UserExceptions.UserNotFoundException;
 import com.voti.pawction.services.auction.AuctionService;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Optional;
 
 public interface BiddingServiceInterface {
@@ -23,7 +22,7 @@ public interface BiddingServiceInterface {
      * <ul>
      *   <li>Loads the bidder and auction with a row lock.</li>
      *   <li>Validates auction status and end time.</li>
-     *   <li>Computes the required deposit hold amount via {@link AuctionService#requireAmount(Long)}.</li>
+     *   <li>Computes the required deposit hold amount via {@link com.voti.pawction.services.auction.policy.AuctionPolicy#requireAmount(Long)}.</li>
      *   <li>Checks that the bid amount is a valid increment over the current highest bid.</li>
      *   <li>Ensures the bidder has sufficient available funds and places a wallet hold.</li>
      *   <li>Persists the bid as {@link Bid_Status#WINNING}.</li>

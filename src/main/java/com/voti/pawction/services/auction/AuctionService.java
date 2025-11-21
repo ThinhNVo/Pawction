@@ -405,7 +405,7 @@ public class AuctionService implements AuctionServiceInterface {
                 .equals(Duration.ofHours(12))) {
             throw new InvalidAuctionException("Auction new end time must be 12 hours from today");
         }
-    };
+    }
 
     /**
      * Ensures a monetary amount is strictly positive.

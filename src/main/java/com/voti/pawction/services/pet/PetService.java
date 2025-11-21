@@ -16,9 +16,7 @@ import com.voti.pawction.exceptions.PetExceptions.InvalidStateException;
 import com.voti.pawction.exceptions.PetExceptions.StorageException;
 import com.voti.pawction.mappers.PetMapper;
 import com.voti.pawction.repositories.UserRepository;
-import com.voti.pawction.repositories.auction.AuctionRepository;
 import com.voti.pawction.repositories.pet.PetRepository;
-import com.voti.pawction.services.auction.AuctionService;
 import com.voti.pawction.services.auction.policy.AuctionPolicy;
 import com.voti.pawction.services.pet.impl.PetServiceInterface;
 import lombok.AllArgsConstructor;
@@ -309,7 +307,8 @@ public class PetService implements PetServiceInterface {
      * @throws PetNotFoundException    if the pet does not exist
      * @throws IllegalArgumentException if the seller does not own this pet
      */
-    private void checkOwnership(Long petId, Long sellerId) {
+    @Transactional
+    public void checkOwnership(Long petId, Long sellerId) {
         var pet = getPetOrThrow(petId);
 
         if (!Objects.equals(pet.getOwner().getUserId(), sellerId)) {
@@ -329,7 +328,8 @@ public class PetService implements PetServiceInterface {
      * @throws PetNotFoundException  if the pet does not exist
      * @throws InvalidStateException if the pet is currently locked in an auction
      */
-    private void enforceNotInAuction(long petId) {
+    @Transactional
+    public void enforceNotInAuction(long petId) {
         var pet = getPetOrThrow(petId);
 
         if (pet.getAuction() != null) {

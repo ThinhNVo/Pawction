@@ -13,7 +13,6 @@ import com.voti.pawction.repositories.auction.AuctionRepository;
 import com.voti.pawction.repositories.wallet.AccountRepository;
 import com.voti.pawction.repositories.wallet.DepositHoldRepository;
 import com.voti.pawction.repositories.wallet.TransactionRepository;
-import com.voti.pawction.services.auction.AuctionService;
 import com.voti.pawction.services.wallet.impl.AccountServiceInterface;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;

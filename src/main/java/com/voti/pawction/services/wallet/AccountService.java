@@ -26,7 +26,7 @@ import java.util.Objects;
 @Service
 @AllArgsConstructor
 @Transactional
-public class AccountServiceStub implements AccountServiceInterface {
+public class AccountService implements AccountServiceInterface {
     private final AccountRepository accountRepository;
     private final DepositHoldRepository holdRepository;
     private final AuctionRepository auctionRepository;

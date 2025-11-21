@@ -5,7 +5,6 @@ import com.voti.pawction.dtos.request.AuctionRequest.UpdateAuctionDetailRequest;
 import com.voti.pawction.dtos.request.AuctionRequest.UpdateAuctionEndTimeRequest;
 import com.voti.pawction.dtos.request.PetRequest.UpdatePetWhenAuctionLiveRequest;
 import com.voti.pawction.dtos.response.AuctionDto;
-import com.voti.pawction.entities.auction.Auction;
 import com.voti.pawction.exceptions.AccountExceptions.InvalidAmountException;
 import com.voti.pawction.exceptions.AuctionExceptions.AuctionInvalidStateException;
 import com.voti.pawction.exceptions.AuctionExceptions.InvalidAuctionException;
@@ -14,7 +13,6 @@ import com.voti.pawction.exceptions.UserExceptions.UserNotFoundException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 public interface AuctionServiceInterface {
     // -------- Creation / lifecycle --------
@@ -146,25 +144,6 @@ public interface AuctionServiceInterface {
      *         {@code false} if the auction was not LIVE or not yet expired
      */
     boolean closeOneIfExpired(Long auctionId, LocalDateTime nowNY);
-
-    /**
-     * Compute the required deposit/hold amount for a given auction based on its start price.
-     * Tiered policy: <= 50 => 5; <= 100 => 10; <= 500 => 25; else 50.
-     *
-     * @param auctionId auction identifier
-     * @return required hold amount
-     */
-    BigDecimal requireAmount(Long auctionId);
-
-    /**
-     * Validate a proposed bid against the current highest bid (no min-increment policy).
-     * Rule: proposed must be strictly greater than the current highest.
-     *
-     * @param auctionId auction identifier
-     * @param proposedBid bid amount to validate (must be positive)
-     * @return true if proposedBid > highestBid; false otherwise
-     */
-    boolean isValidIncrement(Long auctionId, BigDecimal proposedBid);
 
     /**
      * Compute the next minimum bid (no min-increment policy).

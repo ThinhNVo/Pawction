@@ -16,8 +16,8 @@ import com.voti.pawction.exceptions.PetExceptions.InvalidStateException;
 import com.voti.pawction.exceptions.PetExceptions.StorageException;
 import com.voti.pawction.mappers.PetMapper;
 import com.voti.pawction.repositories.UserRepository;
-import com.voti.pawction.repositories.auction.AuctionRepository;
 import com.voti.pawction.repositories.pet.PetRepository;
+import com.voti.pawction.services.auction.policy.AuctionPolicy;
 import com.voti.pawction.services.pet.impl.PetServiceInterface;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,8 +31,7 @@ public class PetService implements PetServiceInterface {
     private final PetMapper petMapper;
     private final UserRepository userRepository;
     private final PetRepository petRepository;
-    private final AuctionRepository auctionRepository;
-
+    private final AuctionPolicy auctionPolicy;
 
     /**
      * Registers a new dog under the specified seller.
@@ -308,7 +307,8 @@ public class PetService implements PetServiceInterface {
      * @throws PetNotFoundException    if the pet does not exist
      * @throws IllegalArgumentException if the seller does not own this pet
      */
-    private void checkOwnership(Long petId, Long sellerId) {
+    @Transactional
+    public void checkOwnership(Long petId, Long sellerId) {
         var pet = getPetOrThrow(petId);
 
         if (!Objects.equals(pet.getOwner().getUserId(), sellerId)) {
@@ -328,7 +328,8 @@ public class PetService implements PetServiceInterface {
      * @throws PetNotFoundException  if the pet does not exist
      * @throws InvalidStateException if the pet is currently locked in an auction
      */
-    private void enforceNotInAuction(long petId) {
+    @Transactional
+    public void enforceNotInAuction(long petId) {
         var pet = getPetOrThrow(petId);
 
         if (pet.getAuction() != null) {
@@ -436,10 +437,11 @@ public class PetService implements PetServiceInterface {
      *
      * @param petId the pet identifier
      * @return the {@code Pet} entity
-     * @exception PetNotFoundException
+     * @throws PetNotFoundException
      *         if the pet does not exist
      */
-    private Pet getPetOrThrow(Long petId) {
+    @Transactional(readOnly = true)
+    public Pet getPetOrThrow(Long petId) {
         return petRepository.findById(petId)
                 .orElseThrow(() -> new PetNotFoundException("Pet not found"));
     }
@@ -451,7 +453,7 @@ public class PetService implements PetServiceInterface {
      *
      * @param ownerId the owner identifier
      * @return the {@code User} entity
-     * @exception UserNotFoundException
+     * @throws UserNotFoundException
      *         if the user does not exist
      */
     private User getOwnerOrThrow(Long ownerId) {
@@ -466,11 +468,10 @@ public class PetService implements PetServiceInterface {
      *
      * @param auctionId the auction identifier
      * @return the {@code Auction} entity
-     * @exception AuctionNotFoundException
+     * @throws AuctionNotFoundException
      *         if the user does not exist
      */
     private Auction getAuctionOrThrow(Long auctionId) {
-        return auctionRepository.findById(auctionId)
-                .orElseThrow(() -> new AuctionNotFoundException("Owner not found"));
+        return auctionPolicy.getAuctionOrThrow(auctionId);
     }
 }

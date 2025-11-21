@@ -1,7 +1,6 @@
 package com.voti.pawction.entities.wallet;
 
 import com.voti.pawction.entities.auction.Auction;
-import com.voti.pawction.entities.pet.Pet;
 import com.voti.pawction.entities.wallet.enums.Status;
 import com.voti.pawction.entities.wallet.enums.Transaction_Type;
 import jakarta.persistence.*;
@@ -11,8 +10,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import com.voti.pawction.entities.wallet.Transaction;
-import com.voti.pawction.entities.wallet.DepositHold;
 
 @Setter
 @Getter
@@ -78,7 +75,6 @@ public class Account {
         hold.setCreatedAt(LocalDateTime.now());
         hold.setUpdatedAt(LocalDateTime.now());
         holds.add(hold);
-        setBalance(getBalance().subtract(hold.getAmount()));
         return hold;
     }
 

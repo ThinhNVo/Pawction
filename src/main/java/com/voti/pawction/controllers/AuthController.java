@@ -38,7 +38,7 @@ public class AuthController {
                         RedirectAttributes redirectAttributes) {
         try {
             // Call service layer for authentication
-            UserDto user = userService.Login(loginRequest.getEmail(), loginRequest.getPassword());
+            UserDto user = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
 
             // Store user in session
             session.setAttribute("loggedInUser", user);

@@ -49,6 +49,9 @@ public class Auction {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(name = "payment_due_at")
+    private LocalDateTime paymentDueDate;
+
     //Auction to Pet Relation
     @OneToOne(cascade = {CascadeType.PERSIST,
             CascadeType.REMOVE}, fetch = FetchType.EAGER)

@@ -7,7 +7,6 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Setter
 @Getter
@@ -24,7 +23,7 @@ public class Bid {
     private Long bidId;
 
     @Column(nullable = false)
-    public Double amount;
+    public BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
     @Column(name="status",nullable = false)
@@ -44,16 +43,4 @@ public class Bid {
     @JoinColumn(name = "user_id")
     @ToString.Exclude
     private User user;
-
-
-    // Bid Create Test optional but for logic
-    public static Bid create(User user, Auction auction, double amount) {
-        Bid bid = new Bid();
-        user.addBid(auction, bid);
-        bid.setAmount(amount);
-        bid.setBidStatus(Bid_Status.WINNING);
-        bid.setBidTime(LocalDateTime.now());
-        return bid;
-    }
-
 }

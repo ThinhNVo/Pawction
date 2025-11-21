@@ -148,25 +148,6 @@ public interface AuctionServiceInterface {
     boolean closeOneIfExpired(Long auctionId, LocalDateTime nowNY);
 
     /**
-     * Compute the required deposit/hold amount for a given auction based on its start price.
-     * Tiered policy: <= 50 => 5; <= 100 => 10; <= 500 => 25; else 50.
-     *
-     * @param auctionId auction identifier
-     * @return required hold amount
-     */
-    BigDecimal requireAmount(Long auctionId);
-
-    /**
-     * Validate a proposed bid against the current highest bid (no min-increment policy).
-     * Rule: proposed must be strictly greater than the current highest.
-     *
-     * @param auctionId auction identifier
-     * @param proposedBid bid amount to validate (must be positive)
-     * @return true if proposedBid > highestBid; false otherwise
-     */
-    boolean isValidIncrement(Long auctionId, BigDecimal proposedBid);
-
-    /**
      * Compute the next minimum bid (no min-increment policy).
      * Rule: highestBid + 1 unit (adjust if you support sub-unit currency).
      *

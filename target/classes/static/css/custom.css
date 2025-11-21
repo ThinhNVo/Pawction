@@ -56,3 +56,36 @@ body {
 /*    height: 100%;*/
 /*    object-fit: cover;*/
 /*}*/
+
+/*.banner-img {*/
+/*    width: 100vw;*/
+/*    height: 45vh;*/
+/*    background-size: 120%;      !* ← this creates the zoom-out effect *!*/
+/*    background-position: center;*/
+/*    background-repeat: no-repeat;*/
+/*}*/
+
+.banner-wrapper {
+    width: 100%;
+    height: 300px;       /* fixed height */
+    overflow: hidden;    /* hide excess image */
+}
+
+.banner-img {
+    width: 101%;             /* slightly wider than container */
+    height: 140%;            /* maintain aspect ratio */
+    object-fit: cover;       /* fill height without stretching */
+    object-position: center; /* center crop */
+    overflow: hidden
+}
+
+
+
+
+
+
+/*.banner-img img {*/
+/*    width: 100%;*/
+/*    height: 100%;*/
+/*    object-fit: cover;*/
+/*}*/

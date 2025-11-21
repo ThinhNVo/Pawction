@@ -13,6 +13,7 @@ import com.voti.pawction.repositories.auction.AuctionRepository;
 import com.voti.pawction.repositories.wallet.AccountRepository;
 import com.voti.pawction.repositories.wallet.DepositHoldRepository;
 import com.voti.pawction.repositories.wallet.TransactionRepository;
+import com.voti.pawction.services.auction.AuctionService;
 import com.voti.pawction.services.wallet.impl.AccountServiceInterface;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -31,6 +32,7 @@ public class AccountService implements AccountServiceInterface {
     private final DepositHoldRepository holdRepository;
     private final AuctionRepository auctionRepository;
     private final TransactionRepository txRepository;
+    private final TransactionRepository transactionRepository;
 
     /**
      * Places a deposit hold for the given auction. Implementations must
@@ -107,8 +109,10 @@ public class AccountService implements AccountServiceInterface {
     public DepositHold forfeitHold(Long accountId, Long auctionId) {
         var auctionHold = getAuctionOrThrow(auctionId).getDepositHolds();
 
+        var account = getAccountOrThrow(accountId);
+
         var penaltyHold = auctionHold.stream()
-                .filter(h -> Objects.equals(h.getAccount(), getAccountOrThrow(accountId)))
+                .filter(h -> Objects.equals(h.getAccount(), account))
                 .filter(h -> h.getDepositStatus() == Status.HELD)
                 .findFirst()
                 .orElseThrow(() -> new HoldNotFoundException("Active hold not found for account on this auction"));
@@ -133,7 +137,7 @@ public class AccountService implements AccountServiceInterface {
         Account a = getAccountOrThrow(accountId);
         Transaction deposit = txRepository.save(a.deposit(amount));
         accountRepository.save(a);
-        return deposit;
+        return transactionRepository.save(deposit);
     }
 
     /**
@@ -157,7 +161,7 @@ public class AccountService implements AccountServiceInterface {
         var a = getAccountOrThrow(accountId);
         Transaction withdraw = a.withdraw(amount);
         accountRepository.save(a);
-        return withdraw;
+        return transactionRepository.save(withdraw);
     }
     /**
      * Returns the current balance stored on the account database.
@@ -205,14 +209,9 @@ public class AccountService implements AccountServiceInterface {
      *
      * @param accountId the account identifier
      * @return list of active holds (possibly empty)
-     * @throws HoldNotFoundException if no Active hold is found
      */
     @Override
     public List<DepositHold> getActiveHolds(Long accountId) {
-        var a = getHolds(accountId);
-        if (a == null) {
-            throw new HoldNotFoundException("Active hold not found for account on this auction");
-        }
         return getHolds(accountId).stream()
                 .filter(h -> h.getDepositStatus() == Status.HELD)
                 .toList();
@@ -220,10 +219,12 @@ public class AccountService implements AccountServiceInterface {
 
     // ---------- helpers ----------
     /**
-     * Validate the amount is larger or equal to 0 and not negative
+     * Ensures a monetary amount is strictly positive.
+     * Use this before setting start prices, bids, deposits, or fees.
      *
-     * @param amt the amount
-     * @throws InvalidAmountException    if insufficient available funds
+     * @param amt the amount to validate (must be non-null and &gt; 0)
+     * @throws NullPointerException   if {@code amt} is null
+     * @throws InvalidAmountException if {@code amt} is zero or negative
      */
     private void requirePositive(BigDecimal amt) {
         Objects.requireNonNull(amt, "amount");
@@ -237,7 +238,8 @@ public class AccountService implements AccountServiceInterface {
      * @return the account entity
      * @throws AccountNotFoundException if account is not found by id
      */
-    private Account getAccountOrThrow(Long accountId) {
+    @Transactional
+    public Account getAccountOrThrow(Long accountId) {
         return accountRepository.findById(accountId)
                 .orElseThrow(()-> new AccountNotFoundException("Account not found by id: " + accountId));
     }
@@ -255,12 +257,12 @@ public class AccountService implements AccountServiceInterface {
     }
 
     /**
-     * Returns a paged slice of transactions for the account, ordered by
+     * Returns a list of transactions for the account, ordered by
      * descending creation time unless otherwise documented by the impl.
      *
      * @param accountId the account identifier
      * @return list of transactions (possibly empty)
-     * @throws AccountNotFoundException if page/size are invalid
+     * @throws AccountNotFoundException if account is not found by id
      */
     @Override
     public List<Transaction> getTransactions(Long accountId) {

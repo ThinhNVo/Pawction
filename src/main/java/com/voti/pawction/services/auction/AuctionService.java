@@ -9,7 +9,6 @@ import com.voti.pawction.entities.User;
 import com.voti.pawction.entities.auction.Auction;
 import com.voti.pawction.entities.auction.enums.Auction_Status;
 import com.voti.pawction.entities.pet.Pet;
-import com.voti.pawction.exceptions.AccountExceptions.AccountNotFoundException;
 import com.voti.pawction.exceptions.AccountExceptions.InvalidAmountException;
 import com.voti.pawction.exceptions.AuctionExceptions.AuctionInvalidStateException;
 import com.voti.pawction.exceptions.AuctionExceptions.AuctionNotFoundException;
@@ -19,8 +18,8 @@ import com.voti.pawction.exceptions.UserExceptions.UserNotFoundException;
 import com.voti.pawction.mappers.AuctionMapper;
 import com.voti.pawction.repositories.UserRepository;
 import com.voti.pawction.repositories.auction.AuctionRepository;
-import com.voti.pawction.repositories.pet.PetRepository;
 import com.voti.pawction.services.auction.impl.AuctionServiceInterface;
+import com.voti.pawction.services.auction.policy.AuctionPolicy;
 import com.voti.pawction.services.pet.PetService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -57,8 +56,9 @@ public class AuctionService implements AuctionServiceInterface {
     private final AuctionMapper auctionMapper;
     private final AuctionRepository auctionRepository;
     private final UserRepository userRepository;
-    private final PetRepository petRepository;
+    private final AuctionPolicy auctionPolicy;
     private final PetService petService;
+    private final BiddingService biddingService;
 
     private static final int BATCH = 200;
     private final Clock clock;
@@ -235,7 +235,7 @@ public class AuctionService implements AuctionServiceInterface {
      *       <ul>
      *         <li>Stamps {@code provisionalWinnerUserId} and {@code finalPrice}.</li>
      *         <li>If no {@code paymentDueAt} is set, assigns a payment deadline
-     *             (e.g., now + 24h, or via configuration).</li>
+     *             (e.g., now + 72h, or via configuration).</li>
      *         <li>Delegates to {@code settlementService.begin(...)} to initiate the
      *             settlement workflow.</li>
      *       </ul>
@@ -262,15 +262,24 @@ public class AuctionService implements AuctionServiceInterface {
         auction.setStatus(Auction_Status.ENDED);
         auction.setUpdatedAt(LocalDateTime.now(clock));
         auctionRepository.save(auction);
-        // TODO get Winner from Bidding service
 
-        // TODO set payment deadline on Settlement service
+        // TODO handle if auction have no winner
+        if (biddingService.getWinningBid(auctionId).isEmpty()) {
+            //settlementService.noWinner(auctionId);
+            return auctionMapper.toDto(auction);
+        }
+
+        biddingService.finalizeBidsOnClose(auctionId);
+
+        auction.setPaymentDueDate(LocalDateTime.now(clock).plusHours(72));
+        auction.setUpdatedAt(LocalDateTime.now(clock));
+        auctionRepository.save(auction);
 
         // TODO start SettlementService
-
-        // TODO Ranking board actions
+        //settlementService.begin(a.getAuctionId(), win.getBidderId(), win.getAmount(), a.getPaymentDueAt());
 
         return auctionMapper.toDto(auction);
+
     }
 
     /**
@@ -349,18 +358,7 @@ public class AuctionService implements AuctionServiceInterface {
     }
 
 // ---------- helpers ----------
-    /**
-     * Ensures a monetary amount is strictly positive.
-     * Use this before setting start prices, bids, deposits, or fees.
-     *
-     * @param amt the amount to validate (must be non-null and &gt; 0)
-     * @throws NullPointerException   if {@code amt} is null
-     * @throws InvalidAmountException if {@code amt} is zero or negative
-     */
-    private void requirePositive(BigDecimal amt) {
-        Objects.requireNonNull(amt, "amount");
-        if (amt.signum() <= 0) throw new InvalidAmountException("amount must be larger than 0");
-    }
+
 
     /**
      * Validate that the auction end time is in the future and after creation.
@@ -410,57 +408,16 @@ public class AuctionService implements AuctionServiceInterface {
     };
 
     /**
-     * Compute the required deposit/hold amount for a given auction based on its start price.
-     * Tiered policy: <= 50 => 5; <= 100 => 10; <= 500 => 25; else 50.
+     * Ensures a monetary amount is strictly positive.
+     * Use this before setting start prices, bids, deposits, or fees.
      *
-     * @param auctionId auction identifier
-     * @return required hold amount
+     * @param amt the amount to validate (must be non-null and &gt; 0)
+     * @throws NullPointerException   if {@code amt} is null
+     * @throws InvalidAmountException if {@code amt} is zero or negative
      */
-    @Transactional
-    @Override
-    public BigDecimal requireAmount(Long auctionId) {
-        var auction = getAuctionOrThrow(auctionId);
-
-        BigDecimal requiredAmount = BigDecimal.ZERO;
-
-        var startPrice = auction.getStartPrice();
-
-        if (startPrice.compareTo(BigDecimal.valueOf(50)) <= 0) {
-            return BigDecimal.valueOf(5);
-        }
-
-        if (startPrice.compareTo(BigDecimal.valueOf(100)) <= 0) {
-            return BigDecimal.valueOf(10);
-        }
-
-        if (startPrice.compareTo(BigDecimal.valueOf(500)) <= 0) {
-            return BigDecimal.valueOf(25);
-        }
-
-        return BigDecimal.valueOf(50);
-    }
-
-    /**
-     * Validate a proposed bid against the current highest bid (no min-increment policy).
-     * Rule: proposed must be strictly greater than the current highest.
-     *
-     * @param auctionId auction identifier
-     * @param proposedBid bid amount to validate (must be positive)
-     * @return true if proposedBid > highestBid; false otherwise
-     */
-    @Transactional
-    @Override
-    public boolean isValidIncrement(Long auctionId, BigDecimal proposedBid) {
-        var auction = getAuctionOrThrow(auctionId);
-
-        requirePositive(proposedBid);
-
-        if (auction.getStatus() != Auction_Status.LIVE) {
-            throw new AuctionInvalidStateException("Only LIVE auctions can be bid on");
-        }
-
-        return proposedBid.compareTo(auction.getHighestBid()
-                .add(BigDecimal.ONE)) >= 0;
+    private void requirePositive(BigDecimal amt) {
+        Objects.requireNonNull(amt, "amount");
+        if (amt.signum() <= 0) throw new InvalidAmountException("amount must be larger than 0");
     }
 
     /**
@@ -477,15 +434,39 @@ public class AuctionService implements AuctionServiceInterface {
     }
 
     /**
+     * Fetches an auction by id or throws if not found.
+     *
+     * @param auctionId the account identifier
+     * @return the account entity
+     * @throws AuctionNotFoundException if the account doesn't exist
+     */
+    @Transactional
+    public Auction getAuctionOrThrowForUpdate(Long auctionId) {
+        return auctionRepository.findByIdForUpdate(auctionId)
+                .orElseThrow(()-> new AuctionNotFoundException("Auction not found by id to update: " + auctionId));
+    }
+
+    /**
+     * Fetches an auction by id from auction policy or throws if not found.
+     *
+     * @param auctionId the account identifier
+     * @return the account entity
+     * @throws AuctionNotFoundException if the account doesn't exist
+     */
+    @Transactional
+    public Auction getAuctionOrThrow(Long auctionId) {
+        return auctionPolicy.getAuctionOrThrow(auctionId);
+    }
+    
+    /**
      * Fetches a pet by id or throws if not found.
      *
      * @param petId the account identifier
      * @return the account entity
-     * @throws AccountNotFoundException if account is not found by id
+     * @throws PetNotFoundException if pet is not found by id
      */
     private Pet getPetOrThrow(Long petId) {
-        return petRepository.findById(petId)
-                .orElseThrow(()-> new PetNotFoundException("Pet not found by id: " + petId));
+        return petService.getPetOrThrow(petId);
     }
 
     /**
@@ -498,29 +479,5 @@ public class AuctionService implements AuctionServiceInterface {
     private User getUserOrThrow(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(()-> new UserNotFoundException("User not found by id: " + userId));
-    }
-
-    /**
-     * Fetches an auction by id or throws if not found.
-     *
-     * @param auctionId the account identifier
-     * @return the account entity
-     * @throws AuctionNotFoundException if the account doesn't exist
-     */
-    private Auction getAuctionOrThrow(Long auctionId) {
-        return auctionRepository.findById(auctionId)
-                .orElseThrow(()-> new AuctionNotFoundException("Auction not found by id: " + auctionId));
-    }
-
-    /**
-     * Fetches an auction by id or throws if not found.
-     *
-     * @param auctionId the account identifier
-     * @return the account entity
-     * @throws AuctionNotFoundException if the account doesn't exist
-     */
-    private Auction getAuctionOrThrowForUpdate(Long auctionId) {
-        return auctionRepository.findByIdForUpdate(auctionId)
-                .orElseThrow(()-> new AuctionNotFoundException("Auction not found by id to update: " + auctionId));
     }
 }

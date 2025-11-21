@@ -18,6 +18,8 @@ import com.voti.pawction.mappers.PetMapper;
 import com.voti.pawction.repositories.UserRepository;
 import com.voti.pawction.repositories.auction.AuctionRepository;
 import com.voti.pawction.repositories.pet.PetRepository;
+import com.voti.pawction.services.auction.AuctionService;
+import com.voti.pawction.services.auction.policy.AuctionPolicy;
 import com.voti.pawction.services.pet.impl.PetServiceInterface;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,8 +33,7 @@ public class PetService implements PetServiceInterface {
     private final PetMapper petMapper;
     private final UserRepository userRepository;
     private final PetRepository petRepository;
-    private final AuctionRepository auctionRepository;
-
+    private final AuctionPolicy auctionPolicy;
 
     /**
      * Registers a new dog under the specified seller.
@@ -436,10 +437,11 @@ public class PetService implements PetServiceInterface {
      *
      * @param petId the pet identifier
      * @return the {@code Pet} entity
-     * @exception PetNotFoundException
+     * @throws PetNotFoundException
      *         if the pet does not exist
      */
-    private Pet getPetOrThrow(Long petId) {
+    @Transactional(readOnly = true)
+    public Pet getPetOrThrow(Long petId) {
         return petRepository.findById(petId)
                 .orElseThrow(() -> new PetNotFoundException("Pet not found"));
     }
@@ -451,7 +453,7 @@ public class PetService implements PetServiceInterface {
      *
      * @param ownerId the owner identifier
      * @return the {@code User} entity
-     * @exception UserNotFoundException
+     * @throws UserNotFoundException
      *         if the user does not exist
      */
     private User getOwnerOrThrow(Long ownerId) {
@@ -466,11 +468,10 @@ public class PetService implements PetServiceInterface {
      *
      * @param auctionId the auction identifier
      * @return the {@code Auction} entity
-     * @exception AuctionNotFoundException
+     * @throws AuctionNotFoundException
      *         if the user does not exist
      */
     private Auction getAuctionOrThrow(Long auctionId) {
-        return auctionRepository.findById(auctionId)
-                .orElseThrow(() -> new AuctionNotFoundException("Owner not found"));
+        return auctionPolicy.getAuctionOrThrow(auctionId);
     }
 }

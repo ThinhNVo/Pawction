@@ -34,17 +34,16 @@ public class UserService implements UserServiceInterface {
      * @param password User new password
      * @return userDto
      * @exception IllegalArgumentException bad data format
-     * @exception UserNotFoundException User id not found
      * @exception UserEmailExistsException User email exists
      * @exception WeakPasswordException User's password invalid
      */
     @Transactional
     public UserDto register(String name, String email, String password) {
-        if (name.isBlank()) {
+        if (name.isEmpty()) {
             throw new IllegalArgumentException("Name is required");
         }
 
-        if (email.isBlank() || !email.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]{2,}$")) {
+        if (email.isEmpty() || !email.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]{2,}$")) {
             throw new IllegalArgumentException("A valid email is required");
         }
 
@@ -67,7 +66,7 @@ public class UserService implements UserServiceInterface {
     }
 
     /**
-     *Validates password strength against local policy.
+     *Validates password
      *
      * @param email User existing email
      * @param password User existing password
@@ -76,7 +75,7 @@ public class UserService implements UserServiceInterface {
      * @exception InvalidCredentialsException if user email is not correct
      */
     @Transactional(readOnly = true)
-    public UserDto Login(String email, String password) {
+    public UserDto login(String email, String password) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("Invalid email or password"));
 
@@ -139,5 +138,18 @@ public class UserService implements UserServiceInterface {
         if (!password.matches(".*\\d.*")) {
             throw new WeakPasswordException("Password must contain at least one digit");
         }
+    }
+
+    /**
+     * Fetches a user by id or throws if not found.
+     *
+     * @param userId the account identifier
+     * @return the account entity
+     * @throws UserNotFoundException if User is not found by id
+     */
+    @Transactional
+    public User getUserOrThrow(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(()-> new UserNotFoundException("User not found by id: " + userId));
     }
 }

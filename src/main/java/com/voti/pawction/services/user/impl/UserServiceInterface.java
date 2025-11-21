@@ -30,7 +30,7 @@ public interface UserServiceInterface {
      * @exception UserNotFoundException if user email is not found
      * @exception InvalidCredentialsException if user email is not correct
      */
-    UserDto Login(String email, String password);
+    UserDto login(String email, String password);
 
     /**
      * Changes a user's password.

@@ -5,6 +5,7 @@ import com.voti.pawction.dtos.request.UserRequest.LoginRequest;
 import com.voti.pawction.dtos.response.UserDto;
 import com.voti.pawction.mappers.UserMapper;
 import com.voti.pawction.repositories.UserRepository;
+import com.voti.pawction.services.auction.AuctionService;
 import com.voti.pawction.services.user.UserService;
 import jakarta.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
@@ -47,33 +48,5 @@ public class UIController {
         model.addAttribute("user", user);
         return "index";
     }
-
-
-    @GetMapping ("/auction/add")
-    public String showAddAuctionPage(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
-        if (!isLoggedIn(session)) {
-            redirectAttributes.addFlashAttribute("errorMessage", "You must be logged in to add an auction.");
-            return "redirect:/login";
-        }
-
-        UserDto user = (UserDto) session.getAttribute("loggedInUser");
-
-        model.addAttribute("loggedIn", true);
-        model.addAttribute("user", user);
-        return "add-auction";
-    }
-
-    @PostMapping("/auction/add")
-    public String addAuction(@ModelAttribute CreateAuctionRequest auctionRequest,
-                             HttpSession session,
-                             RedirectAttributes redirectAttributes) {
-        try {
-            auctionService.createAuction(auctionRequest);
-            redirectAttributes.addFlashAttribute("successMessage", "Auction created successfully!");
-            return "redirect:/home";
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to create auction: " + e.getMessage());
-            return "redirect:/auction/add";
-        }
 
 }

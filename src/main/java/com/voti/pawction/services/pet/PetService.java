@@ -23,6 +23,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -474,4 +475,14 @@ public class PetService implements PetServiceInterface {
     private Auction getAuctionOrThrow(Long auctionId) {
         return auctionPolicy.getAuctionOrThrow(auctionId);
     }
+
+
+    @Transactional()
+    public List<PetDto> getPetsByOwner(Long ownerId) {
+        return petRepository.findByOwnerUserId(ownerId)
+                .stream()
+                .map(petMapper::toDto)
+                .toList();
+    }
+
 }

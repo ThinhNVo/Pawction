@@ -1,7 +1,9 @@
 package com.voti.pawction.controllers;
 
+import com.voti.pawction.dtos.request.PetRequest.RegisterPetRequest;
 import com.voti.pawction.dtos.response.UserDto;
 import com.voti.pawction.entities.pet.Pet;
+import com.voti.pawction.entities.pet.enums.Category;
 import com.voti.pawction.services.pet.PetService;
 import com.voti.pawction.services.user.UserService;
 import jakarta.servlet.http.HttpSession;
@@ -25,19 +27,39 @@ public class PetController {
     }
 
 
-    @GetMapping("/pet/addDog")
+    @GetMapping("/pet/add")
     public String showAddPetForm(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
         if (!isLoggedIn(session)) {
             redirectAttributes.addFlashAttribute("errorMessage", "You must be logged in to add an auction.");
             return "redirect:/login";
         }
 
-        model.addAttribute("pet", new Pet());
-        return "add_dog";
+        model.addAttribute("petRequest", new RegisterPetRequest());
+        return "add_pet";
     }
 
+    @PostMapping("/pet/add")
+    public String addPet(@ModelAttribute("petRequest") RegisterPetRequest request,
+                         HttpSession session,
+                         RedirectAttributes redirectAttributes) {
+        UserDto user = (UserDto) session.getAttribute("loggedInUser");
+        if (user == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "You must be logged in to add a pet.");
+            return "redirect:/login";
+        }
+        try {
+            if (request.getCategory() == Category.Dog) {
+                petService.registerDog(user.getId(), request.toDogRequest());
+            } else if (request.getCategory() == Category.Cat) {
+                petService.registerCat(user.getId(), request.toCatRequest());
+            }
+            redirectAttributes.addFlashAttribute("successMessage", "Pet registered successfully!");
+            return "redirect:/home";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Failed to register pet: " + e.getMessage());
+            return "redirect:/pet/add";
+        }
 
 
-
-
+    }
 }

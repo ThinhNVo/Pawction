@@ -20,6 +20,7 @@ import com.voti.pawction.repositories.pet.PetRepository;
 import com.voti.pawction.services.auction.policy.AuctionPolicy;
 import com.voti.pawction.services.pet.impl.PetServiceInterface;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +29,7 @@ import java.util.Objects;
 
 @Service
 @AllArgsConstructor
+
 public class PetService implements PetServiceInterface {
     private final PetMapper petMapper;
     private final UserRepository userRepository;
@@ -77,7 +79,8 @@ public class PetService implements PetServiceInterface {
         pet.setOwner(seller);
         pet.setPrimaryPhotoUrl(request.getPrimaryPhotoUrl());
 
-        return petMapper.toDto(petRepository.save(pet));
+        Pet saved = petRepository.save(pet);
+        return petMapper.toDto(saved);
     }
 
     /**

@@ -20,7 +20,6 @@ import java.time.LocalDateTime;
 
 @Service
 @AllArgsConstructor
-@Slf4j
 public class UserService implements UserServiceInterface {
     private final UserRepository userRepository;
     private final AccountRepository accountRepository;

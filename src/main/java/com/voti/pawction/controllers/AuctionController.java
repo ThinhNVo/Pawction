@@ -8,6 +8,9 @@ import com.voti.pawction.dtos.request.UserRequest.RegisterUserRequest;
 import com.voti.pawction.dtos.response.PetDto;
 import com.voti.pawction.dtos.response.UserDto;
 import com.voti.pawction.entities.pet.enums.Category;
+import com.voti.pawction.exceptions.AccountExceptions.InvalidAmountException;
+import com.voti.pawction.exceptions.AuctionExceptions.InvalidAuctionException;
+import com.voti.pawction.exceptions.PetExceptions.PetNotFoundException;
 import com.voti.pawction.exceptions.PetExceptions.ValidationException;
 import com.voti.pawction.exceptions.UserExceptions.InvalidCredentialsException;
 import com.voti.pawction.exceptions.UserExceptions.UserEmailExistsException;
@@ -79,8 +82,14 @@ public class AuctionController {
             auctionService.create(seller.getId(), petDto.getPetId(), request.getAuctionRequest());
             redirectAttributes.addFlashAttribute("successMessage", "Auction created successfully!");
             return "redirect:/home";
+        } catch (ValidationException | InvalidAuctionException | InvalidAmountException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/auction/add";
+        } catch (UserNotFoundException | PetNotFoundException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Resource not found: " + e.getMessage());
+            return "redirect:/auction/add";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to create auction: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Unexpected error: " + e.getMessage());
             return "redirect:/auction/add";
         }
 

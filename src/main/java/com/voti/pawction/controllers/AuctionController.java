@@ -15,6 +15,7 @@ import com.voti.pawction.exceptions.UserExceptions.UserNotFoundException;
 import com.voti.pawction.exceptions.UserExceptions.WeakPasswordException;
 import com.voti.pawction.services.auction.AuctionService;
 import com.voti.pawction.services.pet.PetService;
+import com.voti.pawction.services.storage.FileStorageService;
 import com.voti.pawction.services.user.UserService;
 import jakarta.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
@@ -25,6 +26,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.nio.file.Files;
+
 @Controller
 @AllArgsConstructor
 
@@ -32,6 +35,8 @@ public class AuctionController {
     private final AuctionService auctionService;
     private final UserService userService;
     private final PetService petService;
+    private final FileStorageService fileStorageService;
+
     private boolean isLoggedIn(HttpSession session) {
         return session.getAttribute("loggedInUser") != null;
     }
@@ -63,9 +68,9 @@ public class AuctionController {
             // Register the pet first
             PetDto petDto;
             if (request.getPetRequest().getCategory() == Category.Dog) {
-                petDto = petService.registerDog(seller.getId(), request.getPetRequest().toDogRequest());
+                petDto = petService.registerDog(seller.getId(), request.getPetRequest().toDogRequest(fileStorageService));
             } else if (request.getPetRequest().getCategory() == Category.Cat) {
-                petDto = petService.registerCat(seller.getId(), request.getPetRequest().toCatRequest());
+                petDto = petService.registerCat(seller.getId(), request.getPetRequest().toCatRequest(fileStorageService));
             } else {
                 throw new ValidationException("Unsupported category");
             }

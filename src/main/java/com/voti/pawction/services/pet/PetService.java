@@ -19,6 +19,7 @@ import com.voti.pawction.repositories.UserRepository;
 import com.voti.pawction.repositories.pet.PetRepository;
 import com.voti.pawction.services.auction.policy.AuctionPolicy;
 import com.voti.pawction.services.pet.impl.PetServiceInterface;
+import com.voti.pawction.services.storage.FileStorageService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,7 @@ public class PetService implements PetServiceInterface {
     private final UserRepository userRepository;
     private final PetRepository petRepository;
     private final AuctionPolicy auctionPolicy;
+    private final FileStorageService fileStorageService;
 
     /**
      * Registers a new dog under the specified seller.

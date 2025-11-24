@@ -1,7 +1,11 @@
 package com.voti.pawction.dtos.request.PetRequest;
 
 import com.voti.pawction.entities.pet.enums.*;
+import com.voti.pawction.services.storage.FileStorageService;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @Data
 public class RegisterPetRequest {
@@ -22,9 +26,9 @@ public class RegisterPetRequest {
     private Coat_Length catCoatLength;
     private Indoor catIndoorOnly;
 
-    private String primaryPhotoUrl;
+    private MultipartFile primaryPhoto;
 
-    public RegisterDogRequest toDogRequest() {
+    public RegisterDogRequest toDogRequest(FileStorageService fileStorageService) {
         RegisterDogRequest dogReq = new RegisterDogRequest();
         dogReq.setPetName(petName);
         dogReq.setPetAgeMonths(petAgeMonths);
@@ -35,11 +39,15 @@ public class RegisterPetRequest {
         dogReq.setDogSize(dogSize);
         dogReq.setDogTemperament(dogTemperament);
         dogReq.setDogIsHypoallergenic(dogIsHypoallergenic);
-        dogReq.setPrimaryPhotoUrl(primaryPhotoUrl);
+        if (primaryPhoto != null && !primaryPhoto.isEmpty()) {
+            String storedPath = fileStorageService.store(primaryPhoto);
+            dogReq.setPrimaryPhotoUrl(storedPath);
+        }
+
         return dogReq;
     }
 
-    public RegisterCatRequest toCatRequest() {
+    public RegisterCatRequest toCatRequest(FileStorageService fileStorageService) {
         RegisterCatRequest catReq = new RegisterCatRequest();
         catReq.setPetName(petName);
         catReq.setPetAgeMonths(petAgeMonths);
@@ -49,7 +57,11 @@ public class RegisterPetRequest {
         catReq.setCatBreed(catBreed);
         catReq.setCatCoatLength(catCoatLength);
         catReq.setCatIndoorOnly(catIndoorOnly);
-        catReq.setPrimaryPhotoUrl(primaryPhotoUrl);
+        if (primaryPhoto != null && !primaryPhoto.isEmpty()) {
+            String storedPath = fileStorageService.store(primaryPhoto);
+            catReq.setPrimaryPhotoUrl(storedPath);
+        }
+
         return catReq;
     }
 }

@@ -2,9 +2,13 @@ package com.voti.pawction.controllers;
 
 
 import com.voti.pawction.dtos.request.AuctionRequest.CreateAuctionRequest;
+import com.voti.pawction.dtos.request.RegisterPetAndAuctionRequest;
 import com.voti.pawction.dtos.request.UserRequest.LoginRequest;
 import com.voti.pawction.dtos.request.UserRequest.RegisterUserRequest;
+import com.voti.pawction.dtos.response.PetDto;
 import com.voti.pawction.dtos.response.UserDto;
+import com.voti.pawction.entities.pet.enums.Category;
+import com.voti.pawction.exceptions.PetExceptions.ValidationException;
 import com.voti.pawction.exceptions.UserExceptions.InvalidCredentialsException;
 import com.voti.pawction.exceptions.UserExceptions.UserEmailExistsException;
 import com.voti.pawction.exceptions.UserExceptions.UserNotFoundException;
@@ -43,25 +47,31 @@ public class AuctionController {
 
         UserDto user = (UserDto) session.getAttribute("loggedInUser");
 
-        model.addAttribute("auctionRequest", new CreateAuctionRequest()); // matches th:object
-        model.addAttribute("pets", petService.getPetsByOwner(user.getId())); // populate dropdown
+        model.addAttribute("registerPetAndAuctionRequest", new RegisterPetAndAuctionRequest()); // matches th:object
         return "add_auction";
     }
 
     @PostMapping("/auction/add")
-    public String addAuction(@ModelAttribute("auctionRequest") CreateAuctionRequest auctionRequest,
-                             HttpSession session,
-                             RedirectAttributes redirectAttributes) {
+    public String addAuction(@ModelAttribute RegisterPetAndAuctionRequest request, HttpSession session, RedirectAttributes redirectAttributes){
+        UserDto seller = (UserDto) session.getAttribute("loggedInUser");
+        if (seller == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "You must be logged in to add an auction.");
+            return "redirect:/login";
+        }
         try {
-            UserDto seller = (UserDto) session.getAttribute("loggedInUser");
-            if (seller == null) {
-                redirectAttributes.addFlashAttribute("errorMessage", "You must be logged in to add an auction.");
-                return "redirect:/login";
+
+            // Register the pet first
+            PetDto petDto;
+            if (request.getPetRequest().getCategory() == Category.Dog) {
+                petDto = petService.registerDog(seller.getId(), request.getPetRequest().toDogRequest());
+            } else if (request.getPetRequest().getCategory() == Category.Cat) {
+                petDto = petService.registerCat(seller.getId(), request.getPetRequest().toCatRequest());
+            } else {
+                throw new ValidationException("Unsupported category");
             }
 
-         //   .createPetByOwner(user.getId()));
-
-            auctionService.create(seller.getId(), auctionRequest.getPetId(), auctionRequest);
+            // Then create the auction for the registered pet
+            auctionService.create(seller.getId(), petDto.getPetId(), request.getAuctionRequest());
             redirectAttributes.addFlashAttribute("successMessage", "Auction created successfully!");
             return "redirect:/home";
         } catch (Exception e) {

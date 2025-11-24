@@ -97,7 +97,26 @@
 
 <script>
     function toggleCategoryFields(category) {
-        document.getElementById("dogFields").style.display = (category === "Dog") ? "block" : "none";
-        document.getElementById("catFields").style.display = (category === "Cat") ? "block" : "none";
+        const dogFields = document.getElementById("dogFields");
+        const catFields = document.getElementById("catFields");
+
+        if (category === "Dog") {
+            dogFields.style.display = "block";
+            catFields.style.display = "none";
+            dogFields.querySelectorAll("input, select").forEach(el => el.disabled = false);
+            catFields.querySelectorAll("input, select").forEach(el => el.disabled = true);
+        } else if (category === "Cat") {
+            catFields.style.display = "block";
+            dogFields.style.display = "none";
+            catFields.querySelectorAll("input, select").forEach(el => el.disabled = false);
+            dogFields.querySelectorAll("input, select").forEach(el => el.disabled = true);
+        }
     }
+
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const categorySelect = document.getElementById("category");
+        toggleCategoryFields(categorySelect.value);
+    });
 </script>
+

@@ -372,18 +372,17 @@ public class AuctionService implements AuctionServiceInterface {
      *                                 the duration falls outside the allowed window
      */
     private void requireFuture(LocalDateTime createdAt, LocalDateTime endedAt) {
-        if (createdAt != null && endedAt != null) {
-            if (endedAt.isBefore(createdAt)) {
-                throw new InvalidAuctionException("Auction end time must be in the future");
-            }
-
-            if (!Duration.between(createdAt, endedAt)
-                    .equals(Duration.ofHours(12))) {
-                throw new InvalidAuctionException("Auction start time and end time must be 12 hours apart");
-            }
-            return;
+        if (createdAt == null || endedAt == null) {
+            throw new InvalidAuctionException("Auction create time and end time are required");
         }
-        throw new InvalidAuctionException("Auction create time and end time are required");
+
+        if (!endedAt.isAfter(createdAt)) {
+            throw new InvalidAuctionException("Auction end time must be in the future");
+        }
+
+        if (Duration.between(createdAt, endedAt).toHours() < 12) {
+            throw new InvalidAuctionException("Auction must last at least 12 hours");
+        }
     }
 
     /**

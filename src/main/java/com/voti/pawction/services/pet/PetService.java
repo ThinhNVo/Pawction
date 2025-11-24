@@ -242,8 +242,8 @@ public class PetService implements PetServiceInterface {
             throw new ValidationException("Pet name is required");
         }
 
-        if (request.getPetAgeMonths() < 0) {
-            throw new ValidationException("Pet age in months cannot be negative");
+        if (request.getPetAgeMonths() <= 0) {
+            throw new ValidationException("Pet age in months cannot be negative or zero");
         }
 
         if (request.getPetWeight() == null || request.getPetWeight() <= 0) {
@@ -357,8 +357,8 @@ public class PetService implements PetServiceInterface {
             throw new ValidationException("Pet name is required");
         }
 
-        if (petAgeMonths < 0) {
-            throw new ValidationException("Pet age in months cannot be negative");
+        if (petAgeMonths <= 0) {
+            throw new ValidationException("Pet age in months cannot be negative or zero");
         }
 
         if (petSex == null) {

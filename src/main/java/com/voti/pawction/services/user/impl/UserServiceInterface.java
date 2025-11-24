@@ -42,7 +42,7 @@ public interface UserServiceInterface {
      * @exception UserNotFoundException if User id not found
      * @exception InvalidCredentialsException if old password is the same as new and failed validation
      */
-    UserDto ChangePassword(Long userId, String oldPassword, String newPassword);
+    UserDto changePassword(Long userId, String oldPassword, String newPassword);
 
 
 

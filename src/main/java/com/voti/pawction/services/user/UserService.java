@@ -74,7 +74,6 @@ public class UserService implements UserServiceInterface {
      * @exception UserNotFoundException if user email is not found
      * @exception InvalidCredentialsException if user email is not correct
      */
-    @Transactional(readOnly = true)
     public UserDto login(String email, String password) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("Invalid email or password"));
@@ -97,7 +96,7 @@ public class UserService implements UserServiceInterface {
      * @exception InvalidCredentialsException if old password is the same as new and failed validation
      */
     @Transactional
-    public UserDto ChangePassword(Long userId, String oldPassword, String newPassword) {
+    public UserDto changePassword(Long userId, String oldPassword, String newPassword) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found by id: " + userId));
 
@@ -105,9 +104,10 @@ public class UserService implements UserServiceInterface {
             throw new InvalidCredentialsException("Current password is incorrect");
         }
 
-        if (user.getPasswordHash().equals(newPassword)) {
+        if (oldPassword.equals(newPassword)) {
             throw new InvalidCredentialsException("New password must be different from current password");
         }
+
         validatePassword(newPassword);
 
         user.setPasswordHash(newPassword);

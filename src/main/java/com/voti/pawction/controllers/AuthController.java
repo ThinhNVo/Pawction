@@ -1,5 +1,6 @@
 package com.voti.pawction.controllers;
 
+import com.voti.pawction.dtos.request.UserRequest.ChangePasswordRequest;
 import com.voti.pawction.dtos.request.UserRequest.LoginRequest;
 import com.voti.pawction.dtos.request.UserRequest.RegisterUserRequest;
 import com.voti.pawction.dtos.response.UserDto;
@@ -32,6 +33,7 @@ public class AuthController {
         model.addAttribute("loginRequest", new LoginRequest());
         return "login";
     }
+
     @PostMapping("/login")
     public String login(@ModelAttribute LoginRequest loginRequest,
                         HttpSession session,
@@ -86,5 +88,53 @@ public class AuthController {
         return "redirect:/home";
     }
 
-    // need home page now
+    /**
+     * Display change password page
+     */
+    @GetMapping("/change-password")
+    public String showChangePasswordPage(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+        UserDto loggedInUser = (UserDto) session.getAttribute("loggedInUser");
+
+        if (loggedInUser == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Please log in to continue");
+            return "redirect:/login";
+        }
+
+        model.addAttribute("user", loggedInUser);
+        return "change-password";
+    }
+
+    /**
+     * Handle change password form submission
+     */
+    @PostMapping("/change-password")
+    public String changePassword(@ModelAttribute ChangePasswordRequest request,
+                                 HttpSession session,
+                                 RedirectAttributes redirectAttributes) {
+        UserDto loggedInUser = (UserDto) session.getAttribute("loggedInUser");
+
+        if (loggedInUser == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Please log in to continue");
+            return "redirect:/login";
+        }
+
+        try {
+            // Call service layer for password change
+            UserDto updatedUser = userService.changePassword(
+                    loggedInUser.getUserId(),
+                    request.getOldPassword(),
+                    request.getNewPassword()
+            );
+
+            // Invalidate session to force re-login
+            session.invalidate();
+
+            redirectAttributes.addFlashAttribute("successMessage", "Password changed successfully!");
+            return "redirect:/login";
+
+        } catch (InvalidCredentialsException | WeakPasswordException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/change-password";
+        }
+    }
 }

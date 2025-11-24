@@ -1,5 +1,6 @@
 package com.voti.pawction.mappers;
 
+import com.voti.pawction.dtos.request.UserRequest.RegisterUserRequest;
 import com.voti.pawction.dtos.response.UserDto;
 import com.voti.pawction.entities.User;
 import javax.annotation.processing.Generated;
@@ -7,8 +8,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-11-20T19:02:44-0500",
-    comments = "version: 1.6.2, compiler: javac, environment: Java 21.0.5 (Oracle Corporation)"
+    date = "2025-11-23T17:50:04-0500",
+    comments = "version: 1.6.2, compiler: javac, environment: Java 21.0.8 (Microsoft)"
 )
 @Component
 public class UserMapperImpl implements UserMapper {
@@ -19,29 +20,29 @@ public class UserMapperImpl implements UserMapper {
             return null;
         }
 
+        Long userId = null;
         String name = null;
         String email = null;
 
+        userId = user.getUserId();
         name = user.getName();
         email = user.getEmail();
 
-        Long id = null;
-
-        UserDto userDto = new UserDto( id, name, email );
+        UserDto userDto = new UserDto( userId, name, email );
 
         return userDto;
     }
 
     @Override
-    public User toEntity(UserDto userDto) {
-        if ( userDto == null ) {
+    public User toEntity(RegisterUserRequest request) {
+        if ( request == null ) {
             return null;
         }
 
         User.UserBuilder user = User.builder();
 
-        user.name( userDto.getName() );
-        user.email( userDto.getEmail() );
+        user.name( request.getName() );
+        user.email( request.getEmail() );
 
         return user.build();
     }

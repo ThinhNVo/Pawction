@@ -96,10 +96,6 @@
                     <p><strong>Current Price:</strong> $<span th:text="${product.currentPrice}"></span></p>
                     <p><strong>Ends:</strong> <span th:text="${product.endDate}"></span></p>
                 </div>
-                <div class="card-footer d-flex justify-content-between">
-                    <a th:href="@{/product/view(productId=${product.id})}" class="btn btn-primary btn-sm">View</a>
-                    <a th:href="@{/bid(page=true, productId=${product.id})}" class="btn btn-success btn-sm">Bid</a>
-                    <a th:href="@{/bids/list(productId=${product.id})}" class="btn btn-secondary btn-sm">History</a>
                 </div>
             </div>
         </div>

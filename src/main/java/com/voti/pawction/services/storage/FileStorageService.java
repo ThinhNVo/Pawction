@@ -32,9 +32,9 @@ public class FileStorageService {
                 throw new ValidationException("Failed to store empty file.");
             }
 
-            // ✅ Check file size (500 KB = 500 * 1024 bytes)
-            if (file.getSize() > 500 * 1024) {
-                throw new ValidationException("File size must not exceed 500 KB.");
+            // ✅ Check file size (300 KB = 300 * 1024 bytes)
+            if (file.getSize() > 300 * 1024) {
+                throw new ValidationException("File size must not exceed 300 KB.");
             }
 
             String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();

@@ -66,8 +66,8 @@ public class AuctionController {
             redirectAttributes.addFlashAttribute("errorMessage", "You must be logged in to add an auction.");
             return "redirect:/login";
         }
-        try {
 
+        try {
             // Register the pet first
             PetDto petDto;
             if (request.getPetRequest().getCategory() == Category.Dog) {
@@ -81,7 +81,7 @@ public class AuctionController {
             // Then create the auction for the registered pet
             auctionService.create(seller.getId(), petDto.getPetId(), request.getAuctionRequest());
             redirectAttributes.addFlashAttribute("successMessage", "Auction created successfully!");
-            return "redirect:/home";
+            return "redirect:/auction/add";
         } catch (ValidationException | InvalidAuctionException | InvalidAmountException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/auction/add";

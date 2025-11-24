@@ -21,7 +21,7 @@ public class AuctionScheduler {
     private final AuctionSchedulerProperties props;
 
     @Scheduled(cron = "*/30 * * * * *", zone = "${app.zone-id:America/New_York}")
-    @SchedulerLock(name = "auction.closeExpired") // harmless if ShedLock not on classpath
+    @SchedulerLock(name = "auction.closeExpired")
     public void closeExpired() {
         if (!props.isEnabled()) return;
 

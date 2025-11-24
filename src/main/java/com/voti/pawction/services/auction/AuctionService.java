@@ -465,7 +465,7 @@ public class AuctionService implements AuctionServiceInterface {
      * @throws PetNotFoundException if pet is not found by id
      */
     private Pet getPetOrThrow(Long petId) {
-        return petService.getPetOrThrow(petId);
+        return  petService.getPetOrThrow(petId);
     }
 
     /**

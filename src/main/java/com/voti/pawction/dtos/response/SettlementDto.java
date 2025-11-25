@@ -1,5 +1,6 @@
 package com.voti.pawction.dtos.response;
 
+import com.voti.pawction.services.auction.impl.SettlementServiceInterface;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -13,4 +14,5 @@ public class SettlementDto {
     Long winningUserId;
     BigDecimal finalBid;
     LocalDateTime paymentDueAt;
+
 }

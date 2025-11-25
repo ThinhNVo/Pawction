@@ -77,7 +77,7 @@ public interface AuctionServiceInterface {
      * @return ended auction DTO (post-close state applied)
      * @throws AuctionInvalidStateException if auction is CANCELED or already SETTLED
      */
-    AuctionDto settle(Long auctionId);
+    AuctionDto endEarly(Long auctionId);
 
     /**
      * Post-close orchestration for an auction (idempotent).

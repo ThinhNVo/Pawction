@@ -196,7 +196,7 @@ public class AuctionService implements AuctionServiceInterface {
 
     /**
      * Seller ends the auction early.
-     * Transitions LIVE -> ENDED immediately and then delegates to {@link #end(Long)} for post-close orchestration.
+     * Set new end time and call end method to continue ending auction
      * Idempotent: if already ENDED, simply delegates to {@code end()}.
      *
      * @param auctionId Auction ID
@@ -205,15 +205,12 @@ public class AuctionService implements AuctionServiceInterface {
      */
     @Override
     @Transactional
-    public AuctionDto settle(Long auctionId) {
+    public AuctionDto endEarly(Long auctionId) {
         var auction = getAuctionOrThrow(auctionId);
 
         if (auction.getStatus() != Auction_Status.LIVE) {
             throw new AuctionInvalidStateException("Only LIVE auctions can be settled");
         }
-
-        auction.setStatus(Auction_Status.SETTLED);
-        auction.setUpdatedAt(LocalDateTime.now(clock));
         auction.setEndTime(LocalDateTime.now(clock));
         auctionRepository.save(auction);
 
@@ -263,9 +260,9 @@ public class AuctionService implements AuctionServiceInterface {
         auction.setUpdatedAt(LocalDateTime.now(clock));
         auctionRepository.save(auction);
 
-        // TODO handle if auction have no winner
         if (biddingService.getWinningBid(auctionId).isEmpty()) {
-            //settlementService.noWinner(auctionId);
+            auction.setStatus(Auction_Status.SETTLED);
+            auction.setUpdatedAt(LocalDateTime.now(clock));
             return auctionMapper.toDto(auction);
         }
 

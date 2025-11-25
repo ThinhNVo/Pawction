@@ -1,36 +1,89 @@
 package com.voti.pawction.services.auction;
 
+import com.voti.pawction.dtos.response.AuctionDto;
 import com.voti.pawction.dtos.response.SettlementDto;
+import com.voti.pawction.entities.User;
 import com.voti.pawction.entities.auction.Auction;
+import com.voti.pawction.entities.auction.enums.Auction_Status;
+import com.voti.pawction.entities.wallet.enums.Status;
+import com.voti.pawction.exceptions.AuctionExceptions.AuctionInvalidStateException;
 import com.voti.pawction.exceptions.AuctionExceptions.AuctionNotFoundException;
+import com.voti.pawction.exceptions.UserExceptions.UserNotFoundException;
+import com.voti.pawction.mappers.AuctionMapper;
 import com.voti.pawction.mappers.SettlementMapper;
+import com.voti.pawction.repositories.UserRepository;
 import com.voti.pawction.repositories.auction.AuctionRepository;
 import com.voti.pawction.services.auction.impl.SettlementServiceInterface;
+import com.voti.pawction.services.wallet.AccountService;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
 
 @Service
 @AllArgsConstructor
 public class SettlementService implements SettlementServiceInterface {
     private final SettlementMapper settlementMapper;
     private final AuctionRepository auctionRepository;
+    private final UserRepository userRepository;
+    private final BiddingService biddingService;
+    private final AccountService accountService;
+    private final Clock clock;
+
+    private static final int BATCH = 50;
+    private final AuctionMapper auctionMapper;
 
     /**
-     * Start settlement for a closed auction with a winner.
-     * Creates/updates a settlement record in PENDING_PAYMENT state.
+     * Start settlement for a ended auction with a winner.
      *
      * @param auctionId
      * @param winnerUserId
-     * @param finalPrice
      * @param paymentDueAt
      */
     @Override
-    public SettlementDto begin(Long auctionId, Long winnerUserId, BigDecimal finalPrice, LocalDateTime paymentDueAt) {
-        return null;
+    public SettlementDto begin(Long auctionId, Long winnerUserId, LocalDateTime paymentDueAt) {
+        var auction = getAuctionOrThrowForUpdate(auctionId);
+
+        var winningUser = getBidderOrThrow(winnerUserId);
+
+        if (auction.getStatus() != Auction_Status.ENDED) {
+            throw new AuctionInvalidStateException("Only ENDED auctions can begin settlement");
+        }
+
+        if (auction.getPaymentDueDate() == null) {
+            auction.setPaymentDueDate(paymentDueAt);
+        }
+
+        var auctionList = auction.getDepositHolds();
+
+        var firstBid =  biddingService.getWinningBid(auctionId);
+        var secondBid = biddingService.getSecondHighestBid(auctionId);
+
+        if (firstBid.isEmpty() && secondBid.isEmpty()) {
+            return noWinner(auctionId);
+        }
+
+        for (var depositHold : auctionList) {
+            if (!Objects.equals(depositHold.getAccount().getAccountId(),firstBid.get().getBidderId()) &&
+            !Objects.equals(depositHold.getAccount().getAccountId(),secondBid.get().getBidderId())) {
+                accountService.releaseHold(depositHold.getAccount().getAccountId(),auctionId);
+            }
+        }
+
+        auction.setPaymentDueDate(paymentDueAt);
+        auction.setWinningUser(winningUser);
+        auction.setUpdatedAt(LocalDateTime.now(clock));
+        auctionRepository.save(auction);
+
+        return settlementMapper.toDto(auctionRepository.save(auction));
     }
+
 
     /**
      * Handle the case where an auction ends with no winner or only 1 winner but didn't pay
@@ -38,22 +91,14 @@ public class SettlementService implements SettlementServiceInterface {
      * @param auctionId
      */
     @Override
-    public void noWinner(Long auctionId) {
+    public SettlementDto noWinner(Long auctionId) {
+        var auction = getAuctionOrThrowForUpdate(auctionId);
 
-    }
-
-    /**
-     * Winner chooses how to handle their existing hold:
-     * - APPLY_TO_PAYMENT: apply HELD amount up to final price; returns remaining due.
-     * - RELEASE_TO_ACCOUNT: release hold; returns full price due.
-     *
-     * @param auctionId
-     * @param winnerUserId
-     * @param choice
-     */
-    @Override
-    public BigDecimal chooseHoldOption(Long auctionId, Long winnerUserId, HoldChoice choice) {
-        return null;
+        auction.setWinningUser(null);
+        auction.setPaymentDueDate(null);
+        auction.setStatus(Auction_Status.SETTLED);
+        auction.setUpdatedAt(LocalDateTime.now(clock));
+        return settlementMapper.toDto(auctionRepository.save(auction));
     }
 
     /**
@@ -66,8 +111,8 @@ public class SettlementService implements SettlementServiceInterface {
      * @param externalPaymentRef
      */
     @Override
-    public PaymentReceiptDto recordPayment(Long auctionId, Long payerUserId, BigDecimal amount, String externalPaymentRef) {
-        return null;
+    public Boolean paymentStatus(Long auctionId, Long payerUserId, BigDecimal amount, String externalPaymentRef) {
+        return true;
     }
 
     /**
@@ -89,8 +134,36 @@ public class SettlementService implements SettlementServiceInterface {
      * @param now
      */
     @Override
-    public Optional<Long> expireAndPromoteNext(Long auctionId, LocalDateTime now) {
-        return null;
+    public void expireAndPromoteNext(Long auctionId, LocalDateTime now) {
+        var auction = getAuctionOrThrow(auctionId);
+
+        // TODO create payment method
+
+        var firstWinningBid = biddingService.getWinningBid(auctionId);
+
+        if (firstWinningBid.isEmpty()) {
+            noWinner(auctionId);
+            return;
+        }
+
+        var firstWinningBidder = getBidderOrThrow(firstWinningBid.get().getBidderId());
+
+        accountService.forfeitHold(firstWinningBidder.getUserId(), auctionId);
+
+        var secondWinningBid = biddingService.getSecondHighestBid(auctionId);
+
+
+        if (secondWinningBid.isEmpty()) {
+            noWinner(auctionId);
+            return;
+        }
+
+        var secondWinningBidder = getBidderOrThrow(secondWinningBid.get().getBidderId());
+
+        //auction.setHighestBid(secondWinningBidder.get);
+
+
+
     }
 
     /**
@@ -99,7 +172,24 @@ public class SettlementService implements SettlementServiceInterface {
      */
     @Override
     public int expireOverdueSettlements() {
-        return 0;
+        int processed = 0;
+        LocalDateTime nowNY = LocalDateTime.now(clock);
+
+        List<Long> ids;
+        do {
+            ids = auctionRepository.findByStatusAndPaymentDueDateBefore(
+                    Auction_Status.ENDED,
+                    nowNY,
+                    PageRequest.of(0, BATCH));
+
+            for (Long id : ids) {
+                expireAndPromoteNext(id, nowNY);
+                processed++;
+            }
+            auctionRepository.flush();
+        } while (!ids.isEmpty());
+
+        return processed;
     }
 
     /**
@@ -124,12 +214,27 @@ public class SettlementService implements SettlementServiceInterface {
     }
 
     /**
-     * Get the current settlement status for an auction.
+     * Fetches an auction by id or throws if not found.
      *
-     * @param auctionId
+     * @param auctionId the account identifier
+     * @return the account entity
+     * @throws AuctionNotFoundException if the account doesn't exist
      */
-    @Override
-    public SettlementStatus getStatus(Long auctionId) {
-        return null;
+    private Auction getAuctionOrThrowForUpdate(Long auctionId) {
+        return auctionRepository.findByIdForUpdate(auctionId)
+                .orElseThrow(()-> new AuctionNotFoundException("Auction not found by id to update: " + auctionId));
     }
+
+    /**
+     * Fetches a user by id or throws if not found.
+     *
+     * @param userId the account identifier
+     * @return the account entity
+     * @throws UserNotFoundException if User is not found by id
+     */
+    private User getBidderOrThrow(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(()-> new UserNotFoundException("User not found by id: " + userId));
+    }
+
 }

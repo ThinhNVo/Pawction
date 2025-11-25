@@ -64,8 +64,6 @@
                         <li><a class="dropdown-item" href="#">Profile</a></li>
                         <li><a class="dropdown-item" href="#">Settings</a></li>
                         <li><a class="dropdown-item" th:href="@{/auction/add}">Add Auction</a></li>
-                        <li><a class="dropdown-item" th:href="@{/pet/add}">Add pet</a></li>
-
 
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" th:href="@{/logout}">Logout</a></li>
@@ -100,10 +98,6 @@
                     <p><strong>Current Price:</strong> $<span th:text="${product.currentPrice}"></span></p>
                     <p><strong>Ends:</strong> <span th:text="${product.endDate}"></span></p>
                 </div>
-                <div class="card-footer d-flex justify-content-between">
-                    <a th:href="@{/product/view(productId=${product.id})}" class="btn btn-primary btn-sm">View</a>
-                    <a th:href="@{/bid(page=true, productId=${product.id})}" class="btn btn-success btn-sm">Bid</a>
-                    <a th:href="@{/bids/list(productId=${product.id})}" class="btn btn-secondary btn-sm">History</a>
                 </div>
             </div>
         </div>

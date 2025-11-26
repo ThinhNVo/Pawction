@@ -86,11 +86,11 @@ public class PetService implements PetServiceInterface {
         pet.setPrimaryPhotoUrl(null);
 
         Pet saved = petRepository.save(pet);
-        return petMapper.toDto(saved);
+
         seller.addPet(pet);
         userRepository.save(seller);
 
-        return petMapper.toDto(petRepository.save(pet));
+        return petMapper.toDto(saved);
     }
 
     /**
@@ -139,11 +139,11 @@ public class PetService implements PetServiceInterface {
         pet.setPrimaryPhotoUrl(null);
 
         Pet saved = petRepository.save(pet);
-        return petMapper.toDto(saved);
+
         seller.addPet(pet);
         userRepository.save(seller);
 
-        return petMapper.toDto(petRepository.save(pet));
+        return petMapper.toDto(saved);
     }
 
     /**

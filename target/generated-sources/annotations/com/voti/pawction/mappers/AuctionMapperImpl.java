@@ -11,8 +11,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-11-23T13:49:53-0500",
-    comments = "version: 1.6.2, compiler: javac, environment: Java 21.0.8 (Microsoft)"
+    date = "2025-11-26T01:41:08-0500",
+    comments = "version: 1.6.2, compiler: javac, environment: Java 21.0.5 (Oracle Corporation)"
 )
 @Component
 public class AuctionMapperImpl implements AuctionMapper {
@@ -64,6 +64,7 @@ public class AuctionMapperImpl implements AuctionMapper {
         auction.endTime( dto.getEndTime() );
         auction.createdAt( dto.getCreatedAt() );
         auction.updatedAt( dto.getUpdatedAt() );
+        auction.paymentStatus( dto.getPaymentStatus() );
 
         return auction.build();
     }

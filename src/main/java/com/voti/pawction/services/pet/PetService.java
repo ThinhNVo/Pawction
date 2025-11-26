@@ -19,10 +19,12 @@ import com.voti.pawction.repositories.UserRepository;
 import com.voti.pawction.repositories.pet.PetRepository;
 import com.voti.pawction.services.auction.policy.AuctionPolicy;
 import com.voti.pawction.services.pet.impl.PetServiceInterface;
+import com.voti.pawction.services.storage.FileStorageService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -32,6 +34,8 @@ public class PetService implements PetServiceInterface {
     private final UserRepository userRepository;
     private final PetRepository petRepository;
     private final AuctionPolicy auctionPolicy;
+    private final FileStorageService fileStorageService;
+
 
     /**
      * Registers a new dog under the specified seller.
@@ -59,7 +63,7 @@ public class PetService implements PetServiceInterface {
         validateDogInfo(request.getDogBreed(), request.getDogSize(),
                 request.getDogTemperament(), request.getDogIsHypoallergenic());
 
-        if (request.getPrimaryPhotoUrl() == null || request.getPrimaryPhotoUrl().isBlank()) {
+        if (request.getPrimaryPhoto() == null || request.getPrimaryPhoto().isEmpty()) {
             throw new ValidationException("Primary photo is required");
         }
 
@@ -74,9 +78,13 @@ public class PetService implements PetServiceInterface {
         pet.setDogTemperament(request.getDogTemperament());
         pet.setDogIsHypoallergenic(request.getDogIsHypoallergenic());
         pet.setOwner(seller);
-        pet.setPrimaryPhotoUrl(request.getPrimaryPhotoUrl());
 
-        return petMapper.toDto(petRepository.save(pet));
+        // Initially set to null; handled later by attachPhoto after storage
+        // If error occurs photo is not saved
+        pet.setPrimaryPhotoUrl(null);
+
+        Pet saved = petRepository.save(pet);
+        return petMapper.toDto(saved);
     }
 
     /**
@@ -105,7 +113,7 @@ public class PetService implements PetServiceInterface {
         validateCatInfo(request.getCatBreed(), request.getCatCoatLength(),
                 request.getCatIndoorOnly());
 
-        if (request.getPrimaryPhotoUrl() == null || request.getPrimaryPhotoUrl().isBlank()) {
+        if (request.getPrimaryPhoto() == null || request.getPrimaryPhoto().isEmpty()) {
             throw new ValidationException("Primary photo is required");
         }
 
@@ -119,9 +127,13 @@ public class PetService implements PetServiceInterface {
         pet.setCatCoatLength(request.getCatCoatLength());
         pet.setCatIndoorOnly(request.getCatIndoorOnly());
         pet.setOwner(seller);
-        pet.setPrimaryPhotoUrl(request.getPrimaryPhotoUrl());
 
-        return petMapper.toDto(petRepository.save(pet));
+        // Initially set to null; handled later by attachPhoto after storage
+        // If error occurs photo is not saved
+        pet.setPrimaryPhotoUrl(null);
+
+        Pet saved = petRepository.save(pet);
+        return petMapper.toDto(saved);
     }
 
     /**
@@ -473,5 +485,27 @@ public class PetService implements PetServiceInterface {
      */
     private Auction getAuctionOrThrow(Long auctionId) {
         return auctionPolicy.getAuctionOrThrow(auctionId);
+    }
+
+    @Transactional()
+    public List<PetDto> getPetsByOwner(Long ownerId) {
+        return petRepository.findByOwnerUserId(ownerId)
+                .stream()
+                .map(petMapper::toDto)
+                .toList();
+    }
+
+    /**
+     * Attaches a photo URL to an existing Pet.
+     *
+     * @param petId    the ID of the pet
+     * @param photoUrl the URL of the stored photo
+     */
+    public void attachPhoto(Long petId, String photoUrl) {
+        Pet pet = petRepository.findById(petId)
+                .orElseThrow(() -> new PetNotFoundException("Pet not found with id " + petId));
+
+        pet.setPrimaryPhotoUrl(photoUrl);
+        petRepository.save(pet);
     }
 }

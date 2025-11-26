@@ -8,7 +8,6 @@ import com.voti.pawction.dtos.response.AuctionDto;
 import com.voti.pawction.exceptions.AccountExceptions.InvalidAmountException;
 import com.voti.pawction.exceptions.AuctionExceptions.AuctionInvalidStateException;
 import com.voti.pawction.exceptions.AuctionExceptions.InvalidAuctionException;
-import com.voti.pawction.exceptions.PetNotFoundException;
 import com.voti.pawction.exceptions.UserExceptions.UserNotFoundException;
 
 import java.math.BigDecimal;

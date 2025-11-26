@@ -71,8 +71,7 @@ public class Auction {
 
     //Auction to Bid Relation
     @Builder.Default
-    @OneToMany(mappedBy = "auction", cascade = {CascadeType.PERSIST,
-            CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "auction", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.LAZY)
     @ToString.Exclude
     private List<Bid> bids = new ArrayList<>();
 

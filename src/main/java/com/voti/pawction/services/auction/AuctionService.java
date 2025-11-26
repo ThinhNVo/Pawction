@@ -13,7 +13,7 @@ import com.voti.pawction.exceptions.AccountExceptions.InvalidAmountException;
 import com.voti.pawction.exceptions.AuctionExceptions.AuctionInvalidStateException;
 import com.voti.pawction.exceptions.AuctionExceptions.AuctionNotFoundException;
 import com.voti.pawction.exceptions.AuctionExceptions.InvalidAuctionException;
-import com.voti.pawction.exceptions.PetNotFoundException;
+import com.voti.pawction.exceptions.PetExceptions.PetNotFoundException;
 import com.voti.pawction.exceptions.UserExceptions.UserNotFoundException;
 import com.voti.pawction.mappers.AuctionMapper;
 import com.voti.pawction.repositories.UserRepository;
@@ -372,18 +372,17 @@ public class AuctionService implements AuctionServiceInterface {
      *                                 the duration falls outside the allowed window
      */
     private void requireFuture(LocalDateTime createdAt, LocalDateTime endedAt) {
-        if (createdAt != null && endedAt != null) {
-            if (endedAt.isBefore(createdAt)) {
-                throw new InvalidAuctionException("Auction end time must be in the future");
-            }
-
-            if (!Duration.between(createdAt, endedAt)
-                    .equals(Duration.ofHours(12))) {
-                throw new InvalidAuctionException("Auction start time and end time must be 12 hours apart");
-            }
-            return;
+        if (createdAt == null || endedAt == null) {
+            throw new InvalidAuctionException("Auction create time and end time are required");
         }
-        throw new InvalidAuctionException("Auction create time and end time are required");
+
+        if (!endedAt.isAfter(createdAt)) {
+            throw new InvalidAuctionException("Auction end time must be in the future");
+        }
+
+        if (Duration.between(createdAt, endedAt).toHours() < 12) {
+            throw new InvalidAuctionException("Auction must last at least 12 hours");
+        }
     }
 
     /**
@@ -401,8 +400,8 @@ public class AuctionService implements AuctionServiceInterface {
      *                                 {@code endedAt} does not satisfy the 12-hour rule
      */
     private void requireEndAbout12HoursFromNow(LocalDateTime endedAt) {
-        if (!Duration.between(LocalDateTime.now(clock), endedAt)
-                .equals(Duration.ofHours(12))) {
+        if (Duration.between(LocalDateTime.now(clock), endedAt)
+                .toHours() < 12) {
             throw new InvalidAuctionException("Auction new end time must be 12 hours from today");
         }
     }

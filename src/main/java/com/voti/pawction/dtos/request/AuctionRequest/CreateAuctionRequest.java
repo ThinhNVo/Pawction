@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class CreateAuctionRequest {
+    private Long petId;
     private BigDecimal startPrice;
     private String description;
     private LocalDateTime endedAt;

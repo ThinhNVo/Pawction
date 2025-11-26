@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <title>Add Auction</title>
+</head>
+<body>
+
+<form th:action="@{/auction/add}" th:object="${registerPetAndAuctionRequest}" method="post" enctype="multipart/form-data" class="container mt-4">
+
+    <div th:if="${successMessage}" class="message success">
+        <span th:text="${successMessage}"></span>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger mb-4" role="alert">
+        <span th:text="${errorMessage}"></span>
+    </div>
+
+    <!-- Pet Information -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Pet Information</h5>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="petName" class="form-label">Pet Name</label>
+                    <input type="text" th:field="*{petRequest.petName}" id="petName" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="petAgeMonths" class="form-label">Age (months)</label>
+                    <input type="number" th:field="*{petRequest.petAgeMonths}" id="petAgeMonths" class="form-control" required>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="petSex" class="form-label">Sex</label>
+                    <select th:field="*{petRequest.petSex}" id="petSex" class="form-select" required>
+                        <option th:value="M">Male</option>
+                        <option th:value="F">Female</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="petWeight" class="form-label">Weight (kg)</label>
+                    <input type="number" step="0.1" th:field="*{petRequest.petWeight}" id="petWeight" class="form-control" required>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="category" class="form-label">Category</label>
+                    <select th:field="*{petRequest.category}" id="category" class="form-select" required
+                            onchange="toggleCategoryFields(this.value)">
+                        <option th:value="Dog">Dog</option>
+                        <option th:value="Cat">Cat</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="primaryPhoto" class="form-label">Upload Photo</label>
+                    <input type="file" th:field="*{petRequest.primaryPhoto}" id="primaryPhoto" class="form-control" accept="image/*" required>
+                </div>
+            </div>
+
+            <!-- Dog-specific fields -->
+            <div id="dogFields" class="border rounded p-3 bg-light mb-3" style="display:none;">
+                <h6 class="text-secondary">Dog Details</h6>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="dogBreed" class="form-label">Breed</label>
+                        <input type="text" th:field="*{petRequest.dogBreed}" id="dogBreed" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="dogSize" class="form-label">Size</label>
+                        <select th:field="*{petRequest.dogSize}" id="dogSize" class="form-select" required>
+                            <option th:value="SMALL">Small</option>
+                            <option th:value="MEDIUM">Medium</option>
+                            <option th:value="LARGE">Large</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="dogTemperament" class="form-label">Temperament</label>
+                        <input type="text" th:field="*{petRequest.dogTemperament}" id="dogTemperament" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="dogIsHypoallergenic" class="form-label">Hypoallergenic</label>
+                        <select th:field="*{petRequest.dogIsHypoallergenic}" id="dogIsHypoallergenic" class="form-select" required>
+                            <option th:value="YES">Yes</option>
+                            <option th:value="NO">No</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cat-specific fields -->
+            <div id="catFields" class="border rounded p-3 bg-light mb-3" style="display:none;">
+                <h6 class="text-secondary">Cat Details</h6>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="catBreed" class="form-label">Breed</label>
+                        <input type="text" th:field="*{petRequest.catBreed}" id="catBreed" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="catCoatLength" class="form-label">Coat Length</label>
+                        <select th:field="*{petRequest.catCoatLength}" id="catCoatLength" class="form-select" required>
+                            <option th:value="SHORT">Short</option>
+                            <option th:value="MEDIUM">Medium</option>
+                            <option th:value="LONG">Long</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="catIndoorOnly" class="form-label">Indoor Only</label>
+                    <select th:field="*{petRequest.catIndoorOnly}" id="catIndoorOnly" class="form-select" required>
+                        <option th:value="YES">Yes</option>
+                        <option th:value="NO">No</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auction Information -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">Auction Information</h5>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="startPrice" class="form-label">Starting Price</label>
+                    <input type="number" th:field="*{auctionRequest.startPrice}" id="startPrice" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="endedAt" class="form-label">End Date</label>
+                    <input type="datetime-local" th:field="*{auctionRequest.endedAt}" id="endedAt" class="form-control" required>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea th:field="*{auctionRequest.description}" id="description" class="form-control" rows="3" required></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="text-end">
+        <button type="submit" class="btn btn-lg btn-primary">Create Auction</button>
+    </div>
+</form>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function toggleCategoryFields(category) {
+        const dogFields = document.getElementById("dogFields");
+        const catFields = document.getElementById("catFields");
+
+        if (category === "Dog") {
+            dogFields.style.display = "block";
+            catFields.style.display = "none";
+            dogFields.querySelectorAll("input, select").forEach(el => el.disabled = false);
+            catFields.querySelectorAll("input, select").forEach(el => el.disabled = true);
+        } else if (category === "Cat") {
+            catFields.style.display = "block";
+            dogFields.style.display = "none";
+            catFields.querySelectorAll("input, select").forEach(el => el.disabled = false);
+            dogFields.querySelectorAll("input, select").forEach(el => el.disabled = true);
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const categorySelect = document.getElementById("category");
+        toggleCategoryFields(categorySelect.value);
+    });
+</script>
+
+</body>
+</html>
+
+

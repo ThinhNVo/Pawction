@@ -10,6 +10,8 @@ import com.voti.pawction.exceptions.PetExceptions.*;
 import com.voti.pawction.exceptions.UserExceptions.UserNotFoundException;
 import com.voti.pawction.entities.pet.Pet;
 
+import java.util.List;
+
 
 public interface PetServiceInterface {
     /**
@@ -126,4 +128,7 @@ public interface PetServiceInterface {
      *                                  involves external systems
      */
     PetDto changePetImage(Long petId, Long sellerId, String newPetImageUrl);
+
+
+    List<PetDto> getPetsByOwner(Long ownerId);
 }

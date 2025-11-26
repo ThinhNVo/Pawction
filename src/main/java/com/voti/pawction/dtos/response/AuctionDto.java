@@ -17,6 +17,7 @@ public class AuctionDto {
     Auction_Status status;
     LocalDateTime createdAt;
     LocalDateTime endTime;
+    String description;
     LocalDateTime updatedAt;
     Long petId;
     Long sellingUserId;

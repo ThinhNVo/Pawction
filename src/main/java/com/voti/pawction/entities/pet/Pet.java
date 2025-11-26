@@ -62,14 +62,8 @@ public class Pet {
     @Column(name = "cat_indoor_only", nullable = true)
     public Indoor catIndoorOnly;
 
-    @Column(name = "primary_photo_url", nullable = true)
+    @Column(name = "primary_photo_url", nullable = false)
     public String primaryPhotoUrl;
-
-    //Pet to Auction Relationship
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "pet_id")
-    @ToString.Exclude
-    private Auction auction;
 
     //Pet to User Relationship
     @ManyToOne(fetch = FetchType.LAZY)

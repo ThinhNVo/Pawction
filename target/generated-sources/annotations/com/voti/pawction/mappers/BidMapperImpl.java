@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-11-25T19:11:25-0500",
-    comments = "version: 1.6.2, compiler: javac, environment: Java 21.0.8 (Microsoft)"
+    date = "2025-11-26T00:23:32-0500",
+    comments = "version: 1.6.2, compiler: javac, environment: Java 21.0.5 (Oracle Corporation)"
 )
 @Component
 public class BidMapperImpl implements BidMapper {

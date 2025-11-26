@@ -26,9 +26,22 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
             Pageable page
     );
 
+    @Query("""
+       select a.auctionId
+       from Auction a
+       where a.status = :status
+         and a.paymentDueDate <= :cutoff
+       """)
+    List<Long> findByStatusAndPaymentDueDateBefore(
+            @Param("status") Auction_Status status,
+            @Param("cutoff") LocalDateTime cutoff,
+            Pageable page
+    );
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select a from Auction a where a.auctionId = :id")
     Optional<Auction> findByIdForUpdate(@Param("id") Long id);
 
+    boolean existsByPet_PetId(Long petId);
 
 }

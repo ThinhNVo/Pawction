@@ -25,8 +25,6 @@ public class AuctionPolicy {
     public BigDecimal requireAmount(Long auctionId) {
         var auction = getAuctionOrThrow(auctionId);
 
-        BigDecimal requiredAmount = BigDecimal.ZERO;
-
         var startPrice = auction.getStartPrice();
 
         if (startPrice.compareTo(BigDecimal.valueOf(50)) <= 0) {

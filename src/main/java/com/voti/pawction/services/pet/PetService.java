@@ -16,6 +16,7 @@ import com.voti.pawction.exceptions.PetExceptions.InvalidStateException;
 import com.voti.pawction.exceptions.PetExceptions.StorageException;
 import com.voti.pawction.mappers.PetMapper;
 import com.voti.pawction.repositories.UserRepository;
+import com.voti.pawction.repositories.auction.AuctionRepository;
 import com.voti.pawction.repositories.pet.PetRepository;
 import com.voti.pawction.services.auction.policy.AuctionPolicy;
 import com.voti.pawction.services.pet.impl.PetServiceInterface;
@@ -32,6 +33,7 @@ import java.util.Objects;
 public class PetService implements PetServiceInterface {
     private final PetMapper petMapper;
     private final UserRepository userRepository;
+    private final AuctionRepository auctionRepository;
     private final PetRepository petRepository;
     private final AuctionPolicy auctionPolicy;
     private final FileStorageService fileStorageService;
@@ -85,6 +87,10 @@ public class PetService implements PetServiceInterface {
 
         Pet saved = petRepository.save(pet);
         return petMapper.toDto(saved);
+        seller.addPet(pet);
+        userRepository.save(seller);
+
+        return petMapper.toDto(petRepository.save(pet));
     }
 
     /**
@@ -134,6 +140,10 @@ public class PetService implements PetServiceInterface {
 
         Pet saved = petRepository.save(pet);
         return petMapper.toDto(saved);
+        seller.addPet(pet);
+        userRepository.save(seller);
+
+        return petMapper.toDto(petRepository.save(pet));
     }
 
     /**
@@ -342,9 +352,9 @@ public class PetService implements PetServiceInterface {
      */
     @Transactional
     public void enforceNotInAuction(long petId) {
-        var pet = getPetOrThrow(petId);
+        getPetOrThrow(petId);
 
-        if (pet.getAuction() != null) {
+        if (auctionRepository.existsByPet_PetId(petId)) {
             throw new InvalidStateException("Pet is locked in an auction");
         }
     }

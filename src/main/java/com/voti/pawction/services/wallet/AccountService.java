@@ -31,7 +31,7 @@ public class AccountService implements AccountServiceInterface {
     private final DepositHoldRepository holdRepository;
     private final AuctionRepository auctionRepository;
     private final TransactionRepository txRepository;
-    private final TransactionRepository transactionRepository;
+
 
     /**
      * Places a deposit hold for the given auction. Implementations must
@@ -136,7 +136,7 @@ public class AccountService implements AccountServiceInterface {
         Account a = getAccountOrThrow(accountId);
         Transaction deposit = txRepository.save(a.deposit(amount));
         accountRepository.save(a);
-        return transactionRepository.save(deposit);
+        return deposit;
     }
 
     /**
@@ -160,7 +160,7 @@ public class AccountService implements AccountServiceInterface {
         var a = getAccountOrThrow(accountId);
         Transaction withdraw = a.withdraw(amount);
         accountRepository.save(a);
-        return transactionRepository.save(withdraw);
+        return txRepository.save(withdraw);
     }
     /**
      * Returns the current balance stored on the account database.

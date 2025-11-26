@@ -114,6 +114,8 @@ public class BiddingService implements BiddingServiceInterface {
         auction.setUpdatedAt(LocalDateTime.now(clock));
         auctionRepository.save(auction);
 
+        bidder.addBid(auction,saved);
+        userRepository.save(bidder);
         return bidMapper.toDto(bid);
     }
 
@@ -173,9 +175,7 @@ public class BiddingService implements BiddingServiceInterface {
     public void finalizeBidsOnClose(Long auctionId) {
         var auction = getAuctionOrThrow(auctionId);
 
-        var bids = bidRepository.findByAuctionIdOrderByAmountDescBidTimeAsc(auction.getAuctionId());
-
-        if (bids.isEmpty()) {
+        if (auction.getBids().isEmpty()) {
             return;
         }
 

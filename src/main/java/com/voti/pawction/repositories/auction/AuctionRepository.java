@@ -42,5 +42,6 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
     @Query("select a from Auction a where a.auctionId = :id")
     Optional<Auction> findByIdForUpdate(@Param("id") Long id);
 
+    boolean existsByPet_PetId(Long petId);
 
 }

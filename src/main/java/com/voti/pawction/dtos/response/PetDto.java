@@ -21,4 +21,5 @@ public class PetDto {
     private Coat_Length catCoatLength;
     private Indoor catIndoorOnly;
     private String primaryPhotoUrl;
+    private Long ownerId;
 }

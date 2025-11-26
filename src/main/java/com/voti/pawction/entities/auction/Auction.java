@@ -1,6 +1,7 @@
 package com.voti.pawction.entities.auction;
 
 import com.voti.pawction.entities.auction.enums.Auction_Status;
+import com.voti.pawction.entities.auction.enums.Payment_Status;
 import com.voti.pawction.entities.wallet.Account;
 import com.voti.pawction.entities.wallet.DepositHold;
 import com.voti.pawction.entities.User;
@@ -51,6 +52,9 @@ public class Auction {
 
     @Column(name = "payment_due_at")
     private LocalDateTime paymentDueDate;
+
+    @Column(name = "payment_received")
+    private Payment_Status paymentStatus = Payment_Status.UNPAID;
 
     //Auction to Pet Relation
     @OneToOne(cascade = {CascadeType.PERSIST,

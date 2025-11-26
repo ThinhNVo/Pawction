@@ -37,6 +37,11 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
     private Account account;
 
+    public void attachNewAccount(Account account) {
+        this.account = account;
+        account.setUser(this);
+    }
+
     //User to Auction relation
     @Builder.Default
     @OneToMany(mappedBy = "sellingUser", cascade = {CascadeType.PERSIST,

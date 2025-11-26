@@ -59,6 +59,7 @@ public class AuctionService implements AuctionServiceInterface {
     private final AuctionPolicy auctionPolicy;
     private final PetService petService;
     private final BiddingService biddingService;
+    private final SettlementService settlementService;
 
     private static final int BATCH = 200;
     private final Clock clock;
@@ -101,6 +102,9 @@ public class AuctionService implements AuctionServiceInterface {
         a.setEndTime(request.getEndedAt());
         a.setSellingUser(sellingUser);
         a.setPet(pet);
+
+        sellingUser.addAuction(a);
+        userRepository.save(sellingUser);
 
         return auctionMapper.toDto(auctionRepository.save(a));
     }
@@ -250,7 +254,7 @@ public class AuctionService implements AuctionServiceInterface {
     @Override
     @Transactional
     public AuctionDto end(Long auctionId) {
-        var auction = getAuctionOrThrow(auctionId);
+        var auction = getAuctionOrThrowForUpdate(auctionId);
 
         if (auction.getStatus() == Auction_Status.CANCELED || auction.getStatus() == Auction_Status.ENDED) {
             throw new AuctionInvalidStateException("Only LIVE or SETTLED auctions can be ended");
@@ -261,9 +265,7 @@ public class AuctionService implements AuctionServiceInterface {
         auctionRepository.save(auction);
 
         if (biddingService.getWinningBid(auctionId).isEmpty()) {
-            auction.setStatus(Auction_Status.SETTLED);
-            auction.setUpdatedAt(LocalDateTime.now(clock));
-            return auctionMapper.toDto(auction);
+            return settlementService.noWinner(auction.getAuctionId());
         }
 
         biddingService.finalizeBidsOnClose(auctionId);
@@ -272,8 +274,8 @@ public class AuctionService implements AuctionServiceInterface {
         auction.setUpdatedAt(LocalDateTime.now(clock));
         auctionRepository.save(auction);
 
-        // TODO start SettlementService
-        //settlementService.begin(a.getAuctionId(), win.getBidderId(), win.getAmount(), a.getPaymentDueAt());
+        settlementService.begin(auction.getAuctionId(), biddingService.getWinningBid(auctionId).get().getBidderId()
+                , auction.getPaymentDueDate());
 
         return auctionMapper.toDto(auction);
 
@@ -290,7 +292,7 @@ public class AuctionService implements AuctionServiceInterface {
     @Override
     @Transactional
     public void cancel(Long auctionId) {
-        var auction = getAuctionOrThrow(auctionId);
+        var auction = getAuctionOrThrowForUpdate(auctionId);
 
         if (auction.getStatus() != Auction_Status.LIVE) {
             throw new AuctionInvalidStateException("Only LIVE auctions can be canceled");

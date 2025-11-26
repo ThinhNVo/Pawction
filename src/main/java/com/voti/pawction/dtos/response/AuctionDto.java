@@ -1,6 +1,7 @@
 package com.voti.pawction.dtos.response;
 
 import com.voti.pawction.entities.auction.enums.Auction_Status;
+import com.voti.pawction.entities.auction.enums.Payment_Status;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -19,4 +20,5 @@ public class AuctionDto {
     LocalDateTime updatedAt;
     Long petId;
     Long sellingUserId;
+    Payment_Status paymentStatus;
 }

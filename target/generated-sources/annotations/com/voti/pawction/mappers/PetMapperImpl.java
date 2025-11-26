@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-11-26T01:41:08-0500",
+    date = "2025-11-26T02:19:58-0500",
     comments = "version: 1.6.2, compiler: javac, environment: Java 21.0.5 (Oracle Corporation)"
 )
 @Component
@@ -55,7 +55,9 @@ public class PetMapperImpl implements PetMapper {
         catIndoorOnly = pet.getCatIndoorOnly();
         primaryPhotoUrl = pet.getPrimaryPhotoUrl();
 
-        PetDto petDto = new PetDto( petId, petName, petAgeMonths, petSex, petWeight, petCategory, dogBreed, dogSize, dogTemperament, dogIsHypoallergenic, catBreed, catCoatLength, catIndoorOnly, primaryPhotoUrl );
+        Long ownerId = null;
+
+        PetDto petDto = new PetDto( petId, petName, petAgeMonths, petSex, petWeight, petCategory, dogBreed, dogSize, dogTemperament, dogIsHypoallergenic, catBreed, catCoatLength, catIndoorOnly, primaryPhotoUrl, ownerId );
 
         return petDto;
     }

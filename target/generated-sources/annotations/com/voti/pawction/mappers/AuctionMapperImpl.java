@@ -3,6 +3,7 @@ package com.voti.pawction.mappers;
 import com.voti.pawction.dtos.response.AuctionDto;
 import com.voti.pawction.entities.auction.Auction;
 import com.voti.pawction.entities.auction.enums.Auction_Status;
+import com.voti.pawction.entities.auction.enums.Payment_Status;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import javax.annotation.processing.Generated;
@@ -10,8 +11,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-11-23T13:49:53-0500",
-    comments = "version: 1.6.2, compiler: javac, environment: Java 21.0.8 (Microsoft)"
+    date = "2025-11-26T00:23:33-0500",
+    comments = "version: 1.6.2, compiler: javac, environment: Java 21.0.5 (Oracle Corporation)"
 )
 @Component
 public class AuctionMapperImpl implements AuctionMapper {
@@ -29,6 +30,7 @@ public class AuctionMapperImpl implements AuctionMapper {
         LocalDateTime createdAt = null;
         LocalDateTime endTime = null;
         LocalDateTime updatedAt = null;
+        Payment_Status paymentStatus = null;
 
         auctionId = auction.getAuctionId();
         startPrice = auction.getStartPrice();
@@ -37,11 +39,12 @@ public class AuctionMapperImpl implements AuctionMapper {
         createdAt = auction.getCreatedAt();
         endTime = auction.getEndTime();
         updatedAt = auction.getUpdatedAt();
+        paymentStatus = auction.getPaymentStatus();
 
         Long petId = null;
         Long sellingUserId = null;
 
-        AuctionDto auctionDto = new AuctionDto( auctionId, startPrice, highestBid, status, createdAt, endTime, updatedAt, petId, sellingUserId );
+        AuctionDto auctionDto = new AuctionDto( auctionId, startPrice, highestBid, status, createdAt, endTime, updatedAt, petId, sellingUserId, paymentStatus );
 
         return auctionDto;
     }
@@ -61,6 +64,7 @@ public class AuctionMapperImpl implements AuctionMapper {
         auction.endTime( dto.getEndTime() );
         auction.createdAt( dto.getCreatedAt() );
         auction.updatedAt( dto.getUpdatedAt() );
+        auction.paymentStatus( dto.getPaymentStatus() );
 
         return auction.build();
     }

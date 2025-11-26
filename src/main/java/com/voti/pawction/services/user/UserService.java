@@ -58,10 +58,10 @@ public class UserService implements UserServiceInterface {
         user.setPasswordHash(password);
 
         Account account = new Account();
-        account.setUser(user);
         account.setCreatedAt(LocalDateTime.now());
 
-        accountRepository.save(account);
+        user.attachNewAccount(account);
+
         return userMapper.toDto(userRepository.save(user));
     }
 

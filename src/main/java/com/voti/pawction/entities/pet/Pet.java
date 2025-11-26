@@ -65,13 +65,6 @@ public class Pet {
     @Column(name = "primary_photo_url", nullable = false)
     public String primaryPhotoUrl;
 
-    //Pet to Auction Relationship
-    @MapsId
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "pet_id")
-    @ToString.Exclude
-    private Auction auction;
-
     //Pet to User Relationship
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")

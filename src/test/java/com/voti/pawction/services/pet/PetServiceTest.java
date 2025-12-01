@@ -273,6 +273,7 @@ class PetServiceTest {
         cat.setCatCoatLength(Coat_Length.MEDIUM);
         cat.setCatIndoorOnly(Indoor.YES);
         cat.setOwner(userRepository.findById(ownerId).orElseThrow());
+        cat.setPrimaryPhotoUrl("default-photo-url");
         cat = petRepository.save(cat);
 
         // Attach auction
@@ -326,6 +327,7 @@ class PetServiceTest {
         pet.setDogTemperament("Friendly");
         pet.setDogIsHypoallergenic(Allergy.UNKNOWN);
         pet.setOwner(userRepository.findById(ownerId).orElseThrow());
+        pet.setPrimaryPhotoUrl("default-photo-url");
         pet = petRepository.save(pet);
 
         // LIVE auction
@@ -349,7 +351,7 @@ class PetServiceTest {
         req.setPetAgeMonths(21);
         req.setPetWeight(12.0);
 
-        petService.updatePetWhenAuctionLive(auction.getAuctionId(), ownerId, req);
+        petService.updatePetWhenAuctionLive(pet.getPetId(), auction.getAuctionId(), req);
 
         Pet reloaded = petRepository.findById(pet.getPetId()).orElseThrow();
         assertThat(reloaded.getPetName()).isEqualTo("Auction Dog Updated");

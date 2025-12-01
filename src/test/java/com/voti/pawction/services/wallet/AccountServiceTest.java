@@ -106,6 +106,7 @@ class AccountServiceTest {
         pet.setDogTemperament("Friendly");
         pet.setDogIsHypoallergenic(Allergy.UNKNOWN);
         pet.setPrimaryPhotoUrl("notfound");
+        pet.setOwner(us);
         pet = petRepository.save(pet);
 
         // --- Auction ---

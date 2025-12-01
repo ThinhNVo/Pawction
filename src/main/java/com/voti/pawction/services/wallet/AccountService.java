@@ -88,7 +88,6 @@ public class AccountService implements AccountServiceInterface {
                 .orElseThrow(() -> new InvalidAuctionException("Active hold not found for account on this auction"));
         releaseHold.setDepositStatus(Status.RELEASED);
 
-        a.deposit(releaseHold.getAmount());
 
         return holdRepository.save(releaseHold);
     }

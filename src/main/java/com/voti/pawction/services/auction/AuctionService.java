@@ -82,7 +82,7 @@ public class AuctionService implements AuctionServiceInterface {
     public AuctionDto create(Long sellingUserId, Long petId, CreateAuctionRequest request) {
         requirePositive(request.getStartPrice());
 
-        requireFuture(LocalDateTime.now(), request.getEndedAt());
+        requireFuture(LocalDateTime.now(clock), request.getEndedAt());
 
         if (request.getDescription() == null || request.getDescription().isBlank()) {
             throw new InvalidAuctionException("Auction description is required");
@@ -215,8 +215,12 @@ public class AuctionService implements AuctionServiceInterface {
         if (auction.getStatus() != Auction_Status.LIVE) {
             throw new AuctionInvalidStateException("Only LIVE auctions can be settled");
         }
+
         auction.setEndTime(LocalDateTime.now(clock));
+        auction.setUpdatedAt(LocalDateTime.now(clock));
+
         auctionRepository.save(auction);
+
 
         return end(auction.getAuctionId());
     }

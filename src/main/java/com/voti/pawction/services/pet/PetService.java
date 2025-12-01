@@ -83,8 +83,9 @@ public class PetService implements PetServiceInterface {
 
         // Initially set to null; handled later by attachPhoto after storage
         // If error occurs photo is not saved
-        pet.setPrimaryPhotoUrl(null);
-
+       // pet.setPrimaryPhotoUrl(null);
+        String photoUrl = request.getPrimaryPhoto().getOriginalFilename();
+        pet.setPrimaryPhotoUrl(photoUrl);
         Pet saved = petRepository.save(pet);
 
         seller.addPet(pet);
@@ -136,7 +137,9 @@ public class PetService implements PetServiceInterface {
 
         // Initially set to null; handled later by attachPhoto after storage
         // If error occurs photo is not saved
-        pet.setPrimaryPhotoUrl(null);
+       // pet.setPrimaryPhotoUrl(null);
+        String photoUrl = request.getPrimaryPhoto().getOriginalFilename();
+        pet.setPrimaryPhotoUrl(photoUrl);
 
         Pet saved = petRepository.save(pet);
 

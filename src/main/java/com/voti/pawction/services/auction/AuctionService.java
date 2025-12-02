@@ -8,6 +8,7 @@ import com.voti.pawction.dtos.response.AuctionDto;
 import com.voti.pawction.entities.User;
 import com.voti.pawction.entities.auction.Auction;
 import com.voti.pawction.entities.auction.enums.Auction_Status;
+import com.voti.pawction.entities.auction.enums.Payment_Status;
 import com.voti.pawction.entities.pet.Pet;
 import com.voti.pawction.exceptions.AccountExceptions.InvalidAmountException;
 import com.voti.pawction.exceptions.AuctionExceptions.AuctionInvalidStateException;
@@ -82,12 +83,11 @@ public class AuctionService implements AuctionServiceInterface {
     public AuctionDto create(Long sellingUserId, Long petId, CreateAuctionRequest request) {
         requirePositive(request.getStartPrice());
 
-        requireFuture(LocalDateTime.now(), request.getEndedAt());
+        requireFuture(LocalDateTime.now(clock), request.getEndedAt());
 
         if (request.getDescription() == null || request.getDescription().isBlank()) {
             throw new InvalidAuctionException("Auction description is required");
         }
-
         var sellingUser = getUserOrThrow(sellingUserId);
 
         var pet = getPetOrThrow(petId);
@@ -101,12 +101,15 @@ public class AuctionService implements AuctionServiceInterface {
         a.setUpdatedAt(LocalDateTime.now(clock));
         a.setEndTime(request.getEndedAt());
         a.setSellingUser(sellingUser);
+        a.setPaymentDueDate(null);
+        a.setPaymentStatus(Payment_Status.UNPAID);
         a.setPet(pet);
 
-        sellingUser.addAuction(a);
+        var saved = auctionRepository.save(a);
+        sellingUser.addAuction(saved);
         userRepository.save(sellingUser);
 
-        return auctionMapper.toDto(auctionRepository.save(a));
+        return auctionMapper.toDto(auctionRepository.save(saved));
     }
 
     /**
@@ -215,8 +218,12 @@ public class AuctionService implements AuctionServiceInterface {
         if (auction.getStatus() != Auction_Status.LIVE) {
             throw new AuctionInvalidStateException("Only LIVE auctions can be settled");
         }
+
         auction.setEndTime(LocalDateTime.now(clock));
+        auction.setUpdatedAt(LocalDateTime.now(clock));
+
         auctionRepository.save(auction);
+
 
         return end(auction.getAuctionId());
     }

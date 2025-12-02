@@ -104,7 +104,7 @@ public class BiddingService implements BiddingServiceInterface {
         var saved = bidRepository.save(bid);
 
         bidRepository.bulkMarkOutbid(
-                auctionId,
+                auction,
                 saved.getBidId(),
                 Bid_Status.OUTBID
         );
@@ -112,11 +112,11 @@ public class BiddingService implements BiddingServiceInterface {
         auction.setHighestBid(amount);
         auction.setWinningUser(bidder);
         auction.setUpdatedAt(LocalDateTime.now(clock));
-        auctionRepository.save(auction);
+        var newAuction = auctionRepository.save(auction);
 
-        bidder.addBid(auction,saved);
+        bidder.addBid(newAuction,saved);
         userRepository.save(bidder);
-        return bidMapper.toDto(bid);
+        return bidMapper.toDto(saved);
     }
 
     /**
@@ -188,7 +188,7 @@ public class BiddingService implements BiddingServiceInterface {
         }
 
         bidRepository.bulkMarkOutbid(
-                auctionId,
+                auction,
                 winningBid.getBidId(),
                 Bid_Status.OUTBID
         );

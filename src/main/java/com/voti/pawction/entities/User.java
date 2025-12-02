@@ -34,7 +34,7 @@ public class User {
     private String passwordHash;
 
     //User to Account relation
-    @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Account account;
 
     public void attachNewAccount(Account account) {

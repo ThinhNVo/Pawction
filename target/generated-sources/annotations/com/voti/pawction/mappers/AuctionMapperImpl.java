@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-11-26T01:41:08-0500",
+    date = "2025-12-02T12:04:55-0500",
     comments = "version: 1.6.2, compiler: javac, environment: Java 21.0.5 (Oracle Corporation)"
 )
 @Component
@@ -29,6 +29,7 @@ public class AuctionMapperImpl implements AuctionMapper {
         Auction_Status status = null;
         LocalDateTime createdAt = null;
         LocalDateTime endTime = null;
+        String description = null;
         LocalDateTime updatedAt = null;
         Payment_Status paymentStatus = null;
 
@@ -38,13 +39,14 @@ public class AuctionMapperImpl implements AuctionMapper {
         status = auction.getStatus();
         createdAt = auction.getCreatedAt();
         endTime = auction.getEndTime();
+        description = auction.getDescription();
         updatedAt = auction.getUpdatedAt();
         paymentStatus = auction.getPaymentStatus();
 
         Long petId = null;
         Long sellingUserId = null;
 
-        AuctionDto auctionDto = new AuctionDto( auctionId, startPrice, highestBid, status, createdAt, endTime, updatedAt, petId, sellingUserId, paymentStatus );
+        AuctionDto auctionDto = new AuctionDto( auctionId, startPrice, highestBid, status, createdAt, endTime, description, updatedAt, petId, sellingUserId, paymentStatus );
 
         return auctionDto;
     }
@@ -60,6 +62,7 @@ public class AuctionMapperImpl implements AuctionMapper {
         auction.auctionId( dto.getAuctionId() );
         auction.startPrice( dto.getStartPrice() );
         auction.highestBid( dto.getHighestBid() );
+        auction.description( dto.getDescription() );
         auction.status( dto.getStatus() );
         auction.endTime( dto.getEndTime() );
         auction.createdAt( dto.getCreatedAt() );

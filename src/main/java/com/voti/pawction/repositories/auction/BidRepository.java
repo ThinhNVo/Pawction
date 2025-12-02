@@ -1,5 +1,6 @@
 package com.voti.pawction.repositories.auction;
 
+import com.voti.pawction.entities.auction.Auction;
 import com.voti.pawction.entities.auction.Bid;
 import com.voti.pawction.entities.auction.enums.Bid_Status;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -39,10 +40,10 @@ public interface BidRepository extends JpaRepository<Bid, Long> {
     @Query("""
             UPDATE Bid b
             SET b.bidStatus = :status
-            WHERE b.auction = :auctionId
+            WHERE b.auction = :auction
               AND b.bidId <> :winningBidId
             """)
-    int bulkMarkOutbid(@Param("auctionId") Long auctionId,
+    int bulkMarkOutbid(@Param("auction") Auction auction,
                        @Param("winningBidId") Long winningBidId,
                        @Param("status") Bid_Status status);
 

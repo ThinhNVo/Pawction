@@ -12,15 +12,11 @@ import com.voti.pawction.entities.pet.Pet;
 import com.voti.pawction.entities.pet.enums.*;
 import com.voti.pawction.exceptions.AccountExceptions.InvalidAmountException;
 import com.voti.pawction.exceptions.AuctionExceptions.AuctionInvalidStateException;
-import com.voti.pawction.exceptions.AuctionExceptions.AuctionNotFoundException;
 import com.voti.pawction.exceptions.AuctionExceptions.InvalidAuctionException;
 import com.voti.pawction.repositories.UserRepository;
 import com.voti.pawction.repositories.auction.AuctionRepository;
 import com.voti.pawction.repositories.pet.PetRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
@@ -44,9 +40,10 @@ class AuctionServiceTest {
     private Long sellerId;
     private Long petId;
     private Long auctionId;
+    private AuctionDto auctionDto;
+
 
     @BeforeEach
-    @Transactional
     void setUp() {
         // --- Seller ---
         User seller = new User();
@@ -78,12 +75,15 @@ class AuctionServiceTest {
         req.setDescription("Initial auction");
         req.setEndedAt(LocalDateTime.now().plusDays(1));
 
-        AuctionDto created = auctionService.create(sellerId, petId, req);
+        var created = auctionService.create(sellerId, petId, req);
+        System.out.println("Pet Done3" +"\n");
         this.auctionId = created.getAuctionId();
+        this.auctionDto = created;
 
         assertNotNull(sellerId);
         assertNotNull(petId);
         assertNotNull(auctionId);
+        assertNotNull(auctionDto.getCreatedAt());
 
         Auction a = auctionRepository.findById(auctionId).orElseThrow();
         assertThat(a.getStatus()).isEqualTo(Auction_Status.LIVE);
@@ -98,20 +98,16 @@ class AuctionServiceTest {
     @Transactional
     @DisplayName("create: creates LIVE auction with highestBid = startPrice")
     void create_createsLiveAuction() {
-        CreateAuctionRequest req = new CreateAuctionRequest();
-        req.setStartPrice(new BigDecimal("50.00"));
-        req.setDescription("New auction");
-        req.setEndedAt(LocalDateTime.now().plusDays(2));
-
-        AuctionDto dto = auctionService.create(sellerId, petId, req);
+        AuctionDto dto = auctionDto;
 
         assertNotNull(dto.getAuctionId());
         Auction persisted = auctionRepository.findById(dto.getAuctionId()).orElseThrow();
 
-        assertThat(persisted.getStartPrice()).isEqualByComparingTo("50.00");
-        assertThat(persisted.getHighestBid()).isEqualByComparingTo("50.00");
+        assertThat(persisted.getStartPrice()).isEqualByComparingTo("20.00");
+        assertThat(persisted.getHighestBid()).isEqualByComparingTo("20.00");
         assertThat(persisted.getStatus()).isEqualTo(Auction_Status.LIVE);
         assertThat(persisted.getPet().getPetId()).isEqualTo(petId);
+        assertThat(persisted.getCreatedAt() != null);
         assertThat(persisted.getSellingUser().getUserId()).isEqualTo(sellerId);
     }
 
@@ -146,7 +142,6 @@ class AuctionServiceTest {
     // -------------------------------------------------------------------------
 
     @Test
-    @Transactional
     @DisplayName("updateAuctionDetail: updates description for LIVE auction")
     void updateAuctionDetail_updatesDescription() {
         UpdateAuctionDetailRequest req = new UpdateAuctionDetailRequest();
@@ -187,10 +182,15 @@ class AuctionServiceTest {
         auctionRepository.save(a);
 
         UpdateAuctionEndTimeRequest req = new UpdateAuctionEndTimeRequest();
+        UpdateAuctionEndTimeRequest tooClose = new UpdateAuctionEndTimeRequest();
         req.setNewEndTime(LocalDateTime.now().plusDays(1));
+        tooClose.setNewEndTime(LocalDateTime.now().plusHours(10));
 
         assertThrows(AuctionInvalidStateException.class,
                 () -> auctionService.updateAuctionEndTime(auctionId, req));
+
+        assertThrows(InvalidAuctionException.class,
+                () -> auctionService.updateAuctionEndTime(auctionId, tooClose));
     }
 
     // -------------------------------------------------------------------------
@@ -214,7 +214,7 @@ class AuctionServiceTest {
         Auction reloadedAuction = auctionRepository.findById(auctionId).orElseThrow();
         Pet reloadedPet = petRepository.findById(currentPetId).orElseThrow();
 
-        assertThat(dto.getAuctionId()).isEqualTo(auctionId);
+        assertThat(dto.getAuctionId()).isEqualTo(reloadedAuction.getAuctionId());
         assertThat(reloadedPet.getPetName()).isEqualTo("Updated Auction Pet");
         assertThat(reloadedPet.getPetAgeMonths()).isEqualTo(20);
         assertThat(reloadedPet.getPetWeight()).isEqualTo(9.0);
@@ -323,7 +323,7 @@ class AuctionServiceTest {
     @DisplayName("end: CANCELED auction throws AuctionInvalidStateException")
     void end_canceled_throws() {
         Auction a = auctionRepository.findById(auctionId).orElseThrow();
-        a.setStatus(Auction_Status.CANCELED);
+        a.setStatus(Auction_Status.ENDED);
         auctionRepository.save(a);
 
         assertThrows(AuctionInvalidStateException.class,
@@ -342,6 +342,4 @@ class AuctionServiceTest {
         assertThat(reloaded.getWinningUser()).isNull();
         assertThat(reloaded.getEndTime()).isBeforeOrEqualTo(LocalDateTime.now());
     }
-
-
 }

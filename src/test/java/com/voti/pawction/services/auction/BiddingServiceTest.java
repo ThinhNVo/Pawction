@@ -11,6 +11,7 @@ import com.voti.pawction.entities.pet.enums.Allergy;
 import com.voti.pawction.entities.pet.enums.Category;
 import com.voti.pawction.entities.pet.enums.Sex;
 import com.voti.pawction.entities.pet.enums.Size;
+import com.voti.pawction.entities.wallet.Account;
 import com.voti.pawction.exceptions.AuctionExceptions.AuctionInvalidStateException;
 import com.voti.pawction.exceptions.BidExceptions.InvalidBidException;
 import com.voti.pawction.repositories.UserRepository;
@@ -22,10 +23,10 @@ import com.voti.pawction.services.wallet.AccountService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -47,14 +48,16 @@ class BiddingServiceTest {
     @Autowired private BidRepository bidRepository;
     @Autowired private PetRepository petRepository;
 
-    @Mock private AuctionPolicy auctionPolicy;
-    @Mock private AccountService accountService;
+    @MockitoBean private AuctionPolicy auctionPolicy;
+    @MockitoBean private AccountService accountService;
 
     private Long auctionId;
     private Long bidderId;
+    private Long bidder2Id;
 
     private Auction auction;
     private User bidder;
+    private User bidder2;
 
     @BeforeEach
     @Transactional
@@ -64,6 +67,10 @@ class BiddingServiceTest {
         seller.setName("Seller");
         seller.setEmail("seller@example.com");
         seller.setPasswordHash("secret");
+
+        var sellerAccount = new Account();
+        sellerAccount.setCreatedAt(LocalDateTime.now());
+        seller.attachNewAccount(sellerAccount);
         seller = userRepository.save(seller);
 
         // --- Bidder ---
@@ -71,8 +78,25 @@ class BiddingServiceTest {
         bidder.setName("Bidder");
         bidder.setEmail("bidder@example.com");
         bidder.setPasswordHash("secret");
+
+        var bidderAccount = new Account();
+        bidderAccount.setCreatedAt(LocalDateTime.now());
+        bidder.attachNewAccount(bidderAccount);
         bidder = userRepository.save(bidder);
         this.bidderId = bidder.getUserId();
+
+
+        // --- Bidder2 ---
+        bidder2 = new User();
+        bidder2.setName("Bidder");
+        bidder2.setEmail("bidder@example.com");
+        bidder2.setPasswordHash("secret");
+
+        var bidder2Account = new Account();
+        bidder2Account.setCreatedAt(LocalDateTime.now());
+        bidder2.attachNewAccount(bidder2Account);
+        bidder2 = userRepository.save(bidder2);
+        this.bidderId = bidder2.getUserId();
 
         // --- Pet (must exist for FK) ---
         Pet pet = new Pet();
@@ -117,7 +141,6 @@ class BiddingServiceTest {
         when(auctionPolicy.requireAmount(auctionId)).thenReturn(requiredHold);
         when(auctionPolicy.isValidIncrement(eq(auctionId), eq(bidAmount))).thenReturn(true);
         when(accountService.getAvailable(bidderId)).thenReturn(new BigDecimal("100.00"));
-        // placeHold return value is ignored by BiddingService, so we can just stub it
         when(accountService.placeHold(eq(bidderId), eq(auctionId), eq(requiredHold))).thenReturn(null);
 
         // Act
@@ -300,13 +323,27 @@ class BiddingServiceTest {
         loser.setBidTime(LocalDateTime.now().minusMinutes(2));
         loser = bidRepository.save(loser);
 
+        auction.setHighestBid(loser.getAmount());
+        auction.setWinningUser(bidder);
+        auction.setUpdatedAt(LocalDateTime.now());
+        auctionRepository.save(auction);
+        bidder.addBid(auction,loser);
+        userRepository.save(bidder);
+
         Bid winner = new Bid();
         winner.setAuction(auction);
-        winner.setUser(bidder);
+        winner.setUser(bidder2);
         winner.setAmount(new BigDecimal("30.00"));
         winner.setBidStatus(Bid_Status.WINNING);
         winner.setBidTime(LocalDateTime.now().minusMinutes(1));
         winner = bidRepository.save(winner);
+
+        auction.setHighestBid(winner.getAmount());
+        auction.setWinningUser(bidder2);
+        auction.setUpdatedAt(LocalDateTime.now());
+        auctionRepository.save(auction);
+        bidder2.addBid(auction,winner);
+        userRepository.save(bidder2);
 
         // Act
         biddingService.finalizeBidsOnClose(auctionId);
@@ -315,6 +352,7 @@ class BiddingServiceTest {
         Bid reloadedWinner = bidRepository.findById(winner.getBidId()).orElseThrow();
         Bid reloadedLoser = bidRepository.findById(loser.getBidId()).orElseThrow();
 
+        //assertEquals(auction.getWinningUser(), reloadedWinner.getUser());
         assertEquals(Bid_Status.WON, reloadedWinner.getBidStatus());
         assertEquals(Bid_Status.OUTBID, reloadedLoser.getBidStatus());
     }

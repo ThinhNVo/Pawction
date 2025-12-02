@@ -111,7 +111,9 @@ public class SettlementService implements SettlementServiceInterface {
         var firstPlaceUserId = firstPlace.getUserId();
         var secondPlaceUserId = secondPlace.map(BidDto::getBidderId).orElse(null);
 
+
         for (var depositHold : auction.getDepositHolds()) {
+            System.out.println(depositHold);
             if (secondPlaceUserId != null) {
                 if (!depositHold.getAccount().getAccountId().equals(firstPlaceUserId)
                         && !depositHold.getAccount().getAccountId().equals(secondPlaceUserId)) {

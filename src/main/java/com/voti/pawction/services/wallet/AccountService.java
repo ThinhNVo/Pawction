@@ -56,10 +56,15 @@ public class AccountService implements AccountServiceInterface {
         }
 
         var auction = getAuctionOrThrow(auctionId);
+        var account = getAccountOrThrow(accountId);
 
-        var a = getAccountOrThrow(accountId);
-        var hold = holdRepository.save(a.addHold(auction, amount));
-        accountRepository.save(a);
+        var hold = holdRepository.save(account.addHold(auction, amount));
+        accountRepository.save(account);
+        auction.addDepositHold(hold);
+        auctionRepository.save(auction);
+
+        //final save for hold to have auction
+        holdRepository.save(hold);
 
         return hold;
     }

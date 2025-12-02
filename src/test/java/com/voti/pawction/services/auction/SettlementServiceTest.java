@@ -80,9 +80,15 @@ class SettlementServiceTest {
     private Long sellerUserId;
     private Long winnerUserId;
     private Long runnerUpUserId;
+    private Long loserUserId;
 
     private Long winnerAccountId;
     private Long runnerUpAccountId;
+    private long loserAccountId;
+
+    private Long winnerHoldId;
+    private Long runnerUpHoldId;
+    private Long loserHoldId;
 
     @BeforeEach
     @Transactional
@@ -109,26 +115,44 @@ class SettlementServiceTest {
         runnerUp = userRepository.save(runnerUp);
         runnerUpUserId = runnerUp.getUserId();
 
+        User loser = new User();
+        loser.setName("Runner Up");
+        loser.setEmail("loser@example.com");
+        loser.setPasswordHash("secret");
+        loser = userRepository.save(loser);
+        loserUserId = loser.getUserId();
+
         // --- Accounts (just for IDs on holds; real money handled by mocked AccountService) ---
         Account sellerAcc = new Account();
         sellerAcc.setUser(seller);
         sellerAcc.setBalance(BigDecimal.ZERO);
         sellerAcc.setCreatedAt(LocalDateTime.now());
-        sellerAcc = accountRepository.save(sellerAcc);
+        seller.attachNewAccount(sellerAcc);
+        userRepository.save(seller);
 
         Account winnerAcc = new Account();
         winnerAcc.setUser(winner);
         winnerAcc.setBalance(BigDecimal.ZERO);
         winnerAcc.setCreatedAt(LocalDateTime.now());
-        winnerAcc = accountRepository.save(winnerAcc);
-        winnerAccountId = winnerAcc.getAccountId();
+        winner.attachNewAccount(winnerAcc);
+        accountRepository.save(winnerAcc);
+        winnerAccountId = (userRepository.save(winner)).getUserId();
 
         Account runnerUpAcc = new Account();
         runnerUpAcc.setUser(runnerUp);
         runnerUpAcc.setBalance(BigDecimal.ZERO);
         runnerUpAcc.setCreatedAt(LocalDateTime.now());
-        runnerUpAcc = accountRepository.save(runnerUpAcc);
-        runnerUpAccountId = runnerUpAcc.getAccountId();
+        runnerUp.attachNewAccount(runnerUpAcc);
+        accountRepository.save(runnerUpAcc);
+        runnerUpAccountId = (userRepository.save(runnerUp)).getUserId();
+
+        Account loserAcc = new Account();
+        loserAcc.setUser(loser);
+        loserAcc.setBalance(BigDecimal.ZERO);
+        loserAcc.setCreatedAt(LocalDateTime.now());
+        loser.attachNewAccount(loserAcc);
+        accountRepository.save(loserAcc);
+        loserAccountId = (userRepository.save(loser)).getUserId();
 
         // --- Pet ---
         Pet pet = new Pet();
@@ -144,6 +168,8 @@ class SettlementServiceTest {
         pet.setDogIsHypoallergenic(Allergy.UNKNOWN);
         pet.setPrimaryPhotoUrl("notfound");
         pet = petRepository.save(pet);
+        seller.addPet(pet);
+        userRepository.save(seller);
 
         // --- Auction ---
         LocalDateTime now = LocalDateTime.now();
@@ -158,44 +184,52 @@ class SettlementServiceTest {
         auction.setSellingUser(seller);
         auction.setPet(pet);
         auction.setWinningUser(winner);
-        auction.setPaymentDueDate(now.plusHours(2)); // default: within window
+        auction.setPaymentDueDate(now.plusHours(2));
         auction = auctionRepository.save(auction);
         auctionId = auction.getAuctionId();
 
         // --- Deposit holds (winner + runner-up) ---
-        DepositHold winnerHold = new DepositHold();
-        winnerHold.setAuction(auction);
-        winnerHold.setAccount(winnerAcc);
-        winnerHold.setAmount(new BigDecimal("10.00"));
-        winnerHold.setDepositStatus(Status.HELD);
-        winnerHold.setCreatedAt(now);
-        winnerHold.setUpdatedAt(now);
-        depositHoldRepository.save(winnerHold);
 
-        DepositHold runnerUpHold = new DepositHold();
-        runnerUpHold.setAuction(auction);
-        runnerUpHold.setAccount(runnerUpAcc);
-        runnerUpHold.setAmount(new BigDecimal("10.00"));
-        runnerUpHold.setDepositStatus(Status.HELD);
-        runnerUpHold.setCreatedAt(now);
-        runnerUpHold.setUpdatedAt(now);
+        DepositHold winnerHold = winnerAcc.addHold(auction, new BigDecimal("10.00"));
+        depositHoldRepository.save(winnerHold);
+        accountRepository.save(winnerAcc);
+        auction.addDepositHold(winnerHold);
+        auctionRepository.save(auction);
+        depositHoldRepository.save(winnerHold);
+        winnerHoldId = winnerHold.getHoldId();
+
+
+        DepositHold runnerUpHold = runnerUpAcc.addHold(auction, new BigDecimal("10.00"));
         depositHoldRepository.save(runnerUpHold);
+        accountRepository.save(runnerUpAcc);
+        auction.addDepositHold(runnerUpHold);
+        auctionRepository.save(auction);
+        depositHoldRepository.save(runnerUpHold);
+        runnerUpHoldId = runnerUpHold.getHoldId();
+
+        DepositHold loserHold = loserAcc.addHold(auction, new BigDecimal("10.00"));
+        depositHoldRepository.save(loserHold);
+        accountRepository.save(loserAcc);
+        auction.addDepositHold(loserHold);
+        auctionRepository.save(auction);
+        depositHoldRepository.save(loserHold);
+        loserHoldId = loserHold.getHoldId();
 
         // --- bids (winner + runner-up) ---
-        Bid winningBid = new Bid();
-        winningBid.setAuction(auction);
-        winningBid.setUser(winner);
-        winningBid.setAmount(new BigDecimal("30.00"));
-        winningBid.setBidStatus(Bid_Status.WINNING);
-        winningBid.setBidTime(LocalDateTime.now().minusMinutes(1));
-        winningBid = bidRepository.save(winningBid);
+        Bid loserBid = new Bid();
+        loserBid.setAuction(auction);
+        loserBid.setUser(loser);
+        loserBid.setAmount(new BigDecimal("20.00"));
+        loserBid.setBidStatus(Bid_Status.OUTBID);
+        loserBid.setBidTime(LocalDateTime.now().minusMinutes(3));
+        loserBid = bidRepository.save(loserBid);
 
-        auction.setHighestBid(winningBid.getAmount());
-        auction.setWinningUser(winner);
+        auction.setHighestBid(loserBid.getAmount());
+        auction.setWinningUser(loser);
         auction.setUpdatedAt(LocalDateTime.now());
         auctionRepository.save(auction);
-        winner.addBid(auction,winningBid);
-        userRepository.save(winner);
+        loser.addBid(auction,loserBid);
+        userRepository.save(loser);
 
         Bid runnerUpBid = new Bid();
         runnerUpBid.setAuction(auction);
@@ -211,17 +245,27 @@ class SettlementServiceTest {
         auctionRepository.save(auction);
         runnerUp.addBid(auction,runnerUpBid);
         userRepository.save(runnerUp);
+
+        Bid winningBid = new Bid();
+        winningBid.setAuction(auction);
+        winningBid.setUser(winner);
+        winningBid.setAmount(new BigDecimal("30.00"));
+        winningBid.setBidStatus(Bid_Status.WINNING);
+        winningBid.setBidTime(LocalDateTime.now().minusMinutes(1));
+        winningBid = bidRepository.save(winningBid);
+
+        auction.setHighestBid(winningBid.getAmount());
+        auction.setWinningUser(winner);
+        auction.setUpdatedAt(LocalDateTime.now());
+        auctionRepository.save(auction);
+        winner.addBid(auction,winningBid);
+        userRepository.save(winner);
     }
 
     @Test
     @DisplayName("begin: ENDED auction sets winner + due date and releases non-winner holds")
     @Transactional
     void begin_endedAuction_setsWinnerAndDueDate_andReleasesHolds() {
-        // second highest is runner-up
-        BidDto second = mock(BidDto.class);
-        when(second.getBidderId()).thenReturn(runnerUpUserId);
-        when(biddingService.getSecondHighestBid(auctionId)).thenReturn(Optional.of(second));
-
         LocalDateTime dueAt = LocalDateTime.now().plusHours(3);
 
         settlementService.begin(auctionId, winnerUserId, dueAt);
@@ -232,9 +276,8 @@ class SettlementServiceTest {
         assertEquals(winnerUserId, reloaded.getWinningUser().getUserId());
         assertEquals(dueAt, reloaded.getPaymentDueDate());
 
-        // Because accountId != userId, implementation will treat *all* holds as non-winner
-        //verify(accountService, times(2))
-        //        .releaseHold(anyLong(), eq(auctionId));
+        DepositHold loserHold = depositHoldRepository.findById(loserHoldId).orElseThrow();
+        assertEquals(Status.RELEASED, loserHold.getDepositStatus());
     }
 
     @Test

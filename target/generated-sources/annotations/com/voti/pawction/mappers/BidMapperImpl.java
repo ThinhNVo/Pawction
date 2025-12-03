@@ -1,6 +1,7 @@
 package com.voti.pawction.mappers;
 
 import com.voti.pawction.dtos.response.BidDto;
+import com.voti.pawction.entities.User;
 import com.voti.pawction.entities.auction.Bid;
 import com.voti.pawction.entities.auction.enums.Bid_Status;
 import java.math.BigDecimal;
@@ -10,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-12-02T12:04:55-0500",
+    date = "2025-12-03T09:30:49-0500",
     comments = "version: 1.6.2, compiler: javac, environment: Java 21.0.5 (Oracle Corporation)"
 )
 @Component
@@ -22,15 +23,16 @@ public class BidMapperImpl implements BidMapper {
             return null;
         }
 
+        Long bidderId = null;
         Long bidId = null;
         BigDecimal amount = null;
         LocalDateTime bidTime = null;
 
+        bidderId = bidUserUserId( bid );
         bidId = bid.getBidId();
         amount = bid.getAmount();
         bidTime = bid.getBidTime();
 
-        Long bidderId = null;
         Long auctionId = null;
         Bid_Status status = null;
 
@@ -47,10 +49,31 @@ public class BidMapperImpl implements BidMapper {
 
         Bid.BidBuilder bid = Bid.builder();
 
+        bid.user( bidDtoToUser( dto ) );
         bid.bidId( dto.getBidId() );
         bid.amount( dto.getAmount() );
         bid.bidTime( dto.getBidTime() );
 
         return bid.build();
+    }
+
+    private Long bidUserUserId(Bid bid) {
+        User user = bid.getUser();
+        if ( user == null ) {
+            return null;
+        }
+        return user.getUserId();
+    }
+
+    protected User bidDtoToUser(BidDto bidDto) {
+        if ( bidDto == null ) {
+            return null;
+        }
+
+        User.UserBuilder user = User.builder();
+
+        user.userId( bidDto.getBidderId() );
+
+        return user.build();
     }
 }

@@ -82,19 +82,28 @@ public class AccountService implements AccountServiceInterface {
      */
     @Override
     public DepositHold releaseHold(Long accountId, Long auctionId) {
-        var auctionHold = getAuctionOrThrow(auctionId).getDepositHolds();
+        var auction = getAuctionOrThrow(auctionId);
 
-        var a = getAccountOrThrow(accountId);
+        var account = getAccountOrThrow(accountId);
 
-        var releaseHold = auctionHold.stream()
-                .filter(h -> Objects.equals(h.getAccount().getAccountId(), accountId))
-                .filter(h -> h.getDepositStatus() == Status.HELD)
-                .findFirst()
-                .orElseThrow(() -> new InvalidAuctionException("Active hold not found for account on this auction"));
-        releaseHold.setDepositStatus(Status.RELEASED);
+        var holdOpt = auction.getDepositHolds().stream()
+                .filter(h -> Objects.equals(h.getAccount().getAccountId(),
+                        account.getAccountId()))
+                .findFirst();
 
+        if (holdOpt.isEmpty()) {
+            return null;
+        }
 
-        return holdRepository.save(releaseHold);
+        var hold = holdOpt.get();
+
+        if (hold.getDepositStatus() != Status.HELD) {
+            return hold;
+        }
+
+        hold.setDepositStatus(Status.RELEASED);
+
+        return holdRepository.save(hold);
     }
 
     /**

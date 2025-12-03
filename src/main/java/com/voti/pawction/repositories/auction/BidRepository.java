@@ -6,9 +6,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
+@Repository
 public interface BidRepository extends JpaRepository<Bid, Long> {
 
     @Query(value = """
@@ -39,11 +41,14 @@ public interface BidRepository extends JpaRepository<Bid, Long> {
     @Query("""
             UPDATE Bid b
             SET b.bidStatus = :status
-            WHERE b.auction = :auctionId
+            WHERE b.auction.auctionId = :auctionId
               AND b.bidId <> :winningBidId
             """)
     int bulkMarkOutbid(@Param("auctionId") Long auctionId,
                        @Param("winningBidId") Long winningBidId,
                        @Param("status") Bid_Status status);
 
+    Optional<Bid> findTopByAuction_AuctionIdAndUser_UserIdOrderByAmountDesc(Long auctionId, Long userId);
+
+    int countByAuction_AuctionId(Long auctionId);
 }

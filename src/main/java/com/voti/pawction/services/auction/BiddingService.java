@@ -114,7 +114,7 @@ public class BiddingService implements BiddingServiceInterface {
         auction.setUpdatedAt(LocalDateTime.now(clock));
         auctionRepository.save(auction);
 
-        bidder.addBid(auction,saved);
+      //  bidder.addBid(auction,saved);
         userRepository.save(bidder);
         return bidMapper.toDto(bid);
     }
@@ -152,6 +152,22 @@ public class BiddingService implements BiddingServiceInterface {
         var auction = getAuctionOrThrow(auctionId);
         return bidRepository.findSecondByAuctionId(auction.getAuctionId())
                 .map(bidMapper::toDto);
+    }
+
+    @Transactional(readOnly = true)
+    public BidDto getUsersHighestBidForAuction(Long userId, Long auctionId) {
+        var auction = getAuctionOrThrow(auctionId);
+        var user = getUserOrThrow(userId);
+
+        return bidRepository.findTopByAuction_AuctionIdAndUser_UserIdOrderByAmountDesc(
+                        auction.getAuctionId(),
+                        user.getUserId())
+                .map(bidMapper::toDto)
+                .orElse(null);  // no exception, just return null
+    }
+
+    public int getBidCountForAuction(Long auctionId) {
+        return bidRepository.countByAuction_AuctionId(auctionId);
     }
 
     /**

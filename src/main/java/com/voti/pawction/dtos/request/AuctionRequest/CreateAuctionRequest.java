@@ -14,4 +14,5 @@ public class CreateAuctionRequest {
     private BigDecimal startPrice;
     private String description;
     private LocalDateTime endedAt;
+
 }

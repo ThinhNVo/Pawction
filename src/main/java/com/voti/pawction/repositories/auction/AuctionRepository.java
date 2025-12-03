@@ -9,10 +9,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Repository;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public interface AuctionRepository extends JpaRepository<Auction, Long> {
     @Query("""
         select a.auctionId from Auction a
@@ -44,4 +47,5 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
 
     boolean existsByPet_PetId(Long petId);
 
+    List<Auction> findByStatus(Auction_Status status);
 }

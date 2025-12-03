@@ -53,6 +53,7 @@ public class Auction {
     @Column(name = "payment_due_at")
     private LocalDateTime paymentDueDate;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "payment_received")
     private Payment_Status paymentStatus = Payment_Status.UNPAID;
 

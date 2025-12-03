@@ -62,7 +62,7 @@ public class Pet {
     @Column(name = "cat_indoor_only", nullable = true)
     public Indoor catIndoorOnly;
 
-    @Column(name = "primary_photo_url", nullable = false)
+    @Column(name = "primary_photo_url", nullable = true)
     public String primaryPhotoUrl;
 
     //Pet to User Relationship

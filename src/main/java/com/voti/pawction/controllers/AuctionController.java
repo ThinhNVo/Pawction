@@ -9,7 +9,10 @@ import com.voti.pawction.dtos.response.PetDto;
 import com.voti.pawction.dtos.response.UserDto;
 import com.voti.pawction.entities.pet.enums.Category;
 import com.voti.pawction.exceptions.AccountExceptions.InvalidAmountException;
+import com.voti.pawction.exceptions.AuctionExceptions.AuctionInvalidStateException;
+import com.voti.pawction.exceptions.AuctionExceptions.AuctionNotFoundException;
 import com.voti.pawction.exceptions.AuctionExceptions.InvalidAuctionException;
+import com.voti.pawction.exceptions.BidExceptions.InvalidBidException;
 import com.voti.pawction.exceptions.PetExceptions.PetNotFoundException;
 import com.voti.pawction.exceptions.PetExceptions.ValidationException;
 import com.voti.pawction.exceptions.UserExceptions.InvalidCredentialsException;
@@ -17,6 +20,7 @@ import com.voti.pawction.exceptions.UserExceptions.UserEmailExistsException;
 import com.voti.pawction.exceptions.UserExceptions.UserNotFoundException;
 import com.voti.pawction.exceptions.UserExceptions.WeakPasswordException;
 import com.voti.pawction.services.auction.AuctionService;
+import com.voti.pawction.services.auction.BiddingService;
 import com.voti.pawction.services.pet.PetService;
 import com.voti.pawction.services.storage.FileStorageService;
 import com.voti.pawction.services.user.UserService;
@@ -27,9 +31,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.math.BigDecimal;
 import java.nio.file.Files;
 
 @Controller
@@ -39,6 +45,7 @@ public class AuctionController {
     private final UserService userService;
     private final PetService petService;
     private final FileStorageService fileStorageService;
+    private final BiddingService biddingService;
 
     private boolean isLoggedIn(HttpSession session) {
         return session.getAttribute("loggedInUser") != null;
@@ -100,6 +107,30 @@ public class AuctionController {
             redirectAttributes.addFlashAttribute("errorMessage", "Unexpected error: " + e.getMessage());
             return "redirect:/auction/add";
         }
-
     }
+
+    @PostMapping("/auction/bid/place")
+    public String increaseBid(@RequestParam Long auctionId,
+                              @RequestParam BigDecimal newBidAmount,
+                              HttpSession session,
+                              RedirectAttributes redirectAttributes) {
+
+        UserDto user = (UserDto) session.getAttribute("loggedInUser");
+
+        if (user == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "You must be logged in to increase a bid.");
+            return "redirect:/login";
+        }
+
+        try {
+            biddingService.placeBid(user.getUserId(), auctionId, newBidAmount);
+            redirectAttributes.addFlashAttribute("successMessage", "Your bid has been increased successfully!");
+        } catch (AuctionInvalidStateException | InvalidBidException | InvalidAmountException | UserNotFoundException
+                | AuctionNotFoundException | IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+
+        return "redirect:/product/" + auctionId;
+    }
+
 }

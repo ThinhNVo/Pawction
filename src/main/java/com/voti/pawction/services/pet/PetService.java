@@ -469,6 +469,22 @@ public class PetService implements PetServiceInterface {
     }
 
     /**
+     * Retrieves the DTO representation of a pet by its identifier.
+     * <p>
+     * Intended for controller and view layers to safely expose pet data without
+     * leaking domain entities.
+     * </p>
+     *
+     * @param petId unique pet identifier
+     * @return the {@code PetDto} representation of the pet
+     * @throws PetNotFoundException if no pet exists with the given id
+     */
+    public PetDto getPetDtoOrThrow(Long petId) {
+        return petMapper.toDto(petRepository.findById(petId)
+        .orElseThrow(() -> new PetNotFoundException("Pet not found")));
+    }
+
+    /**
      * Retrieves the domain entity for the given user identifier. Intended for
      * internal orchestration where access to the aggregate/entity is required.
      * Controllers should prefer DTO-returning lookups to avoid leaking entities.

@@ -3,10 +3,13 @@ package com.voti.pawction.mappers;
 import com.voti.pawction.dtos.response.BidDto;
 import com.voti.pawction.entities.auction.Bid;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel="spring")
 public interface BidMapper {
+    @Mapping(source = "user.userId", target = "bidderId")
     BidDto toDto(Bid bid);
 
+    @Mapping(source = "bidderId", target = "user.userId")
     Bid toEntity(BidDto dto);
 }

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 public interface BidRepository extends JpaRepository<Bid, Long> {
@@ -47,4 +48,5 @@ public interface BidRepository extends JpaRepository<Bid, Long> {
                        @Param("winningBidId") Long winningBidId,
                        @Param("status") Bid_Status status);
 
+    void deleteBidByAmount(BigDecimal amount);
 }

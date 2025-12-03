@@ -6,6 +6,7 @@ import com.voti.pawction.entities.User;
 import com.voti.pawction.entities.auction.Auction;
 import com.voti.pawction.entities.auction.enums.Auction_Status;
 import com.voti.pawction.entities.auction.enums.Payment_Status;
+import com.voti.pawction.entities.wallet.enums.Status;
 import com.voti.pawction.exceptions.AuctionExceptions.AuctionInvalidStateException;
 import com.voti.pawction.exceptions.AuctionExceptions.AuctionNotFoundException;
 import com.voti.pawction.exceptions.PaymentExceptions.InvalidPaymentException;
@@ -24,9 +25,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 
 /**
@@ -108,21 +107,27 @@ public class SettlementService implements SettlementServiceInterface {
             return noWinner(auctionId);
         }
 
+        Map<Long, String> reservedId = new HashMap<>();
+
         var firstPlaceUserId = firstPlace.getUserId();
-        var secondPlaceUserId = secondPlace.map(BidDto::getBidderId).orElse(null);
+        reservedId.put(firstPlaceUserId, "firstPlaceUserId");
+
+        var secondPlaceUser = secondPlace.map(bidMapper::toEntity).orElse(null);
+        if (secondPlaceUser != null) {
+            var secondPlaceUserId = secondPlaceUser.getUser().getUserId();
+            reservedId.put(secondPlaceUserId, "secondPlaceUserId");
+        }
 
 
         for (var depositHold : auction.getDepositHolds()) {
+            var accountId = depositHold.getAccount().getAccountId();
             System.out.println(depositHold);
-            if (secondPlaceUserId != null) {
-                if (!depositHold.getAccount().getAccountId().equals(firstPlaceUserId)
-                        && !depositHold.getAccount().getAccountId().equals(secondPlaceUserId)) {
-                    accountService.releaseHold(depositHold.getAccount().getAccountId(),auctionId);
-                }
-            } else {
-                if (!depositHold.getAccount().getAccountId().equals(firstPlaceUserId)) {
-                    accountService.releaseHold(depositHold.getAccount().getAccountId(),auctionId);
-                }
+            if (depositHold.getDepositStatus() != Status.HELD) {
+                continue;
+            }
+
+            if (!reservedId.containsKey(accountId)) {
+                System.out.println(accountService.releaseHold(accountId, auctionId));
             }
         }
 
@@ -331,9 +336,10 @@ public class SettlementService implements SettlementServiceInterface {
         }
 
         var currentWinner = auction.getWinningUser();
-        var secondPlace = biddingService.getSecondHighestBid(auctionId);
+        var secondWinner = biddingService.getSecondHighestBid(auctionId);
+        var secondPlace = secondWinner.map(bidMapper::toEntity).orElse(null);
 
-        if (secondPlace.isEmpty()) {
+        if (secondPlace == null) {
             accountService.forfeitHold(currentWinner.getUserId(), auctionId);
             auction.setHighestBid(auction.getStartPrice());
             auctionRepository.save(auction);
@@ -341,13 +347,13 @@ public class SettlementService implements SettlementServiceInterface {
             return true;
         }
 
-        var backupWinner = getBidderOrThrow(secondPlace.get().getBidderId());
+        var backupWinner = getBidderOrThrow(secondPlace.getUser().getUserId());
 
         if (!currentWinner.equals(backupWinner)) {
             accountService.forfeitHold(currentWinner.getUserId(), auctionId);
 
             auction.setWinningUser(backupWinner);
-            auction.setHighestBid(secondPlace.get().getAmount());
+            auction.setHighestBid(secondPlace.getAmount());
             auction.setPaymentDueDate(LocalDateTime.now(clock).plusHours(72));
             auction.setUpdatedAt(LocalDateTime.now(clock));
             auctionRepository.save(auction);

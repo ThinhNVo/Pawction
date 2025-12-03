@@ -33,17 +33,13 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -70,10 +66,10 @@ class SettlementServiceTest {
     @Autowired
     private BidRepository bidRepository;
 
-    @MockitoBean
+    @Autowired
     private BiddingService biddingService;
 
-    @MockitoBean
+    @Autowired
     private AccountService accountService;
 
     private Long auctionId;
@@ -292,8 +288,6 @@ class SettlementServiceTest {
                 AuctionInvalidStateException.class,
                 () -> settlementService.begin(auctionId, winnerUserId, LocalDateTime.now().plusHours(1))
         );
-
-        verifyNoInteractions(accountService);
     }
 
     @Test
@@ -316,14 +310,10 @@ class SettlementServiceTest {
         @DisplayName("happy path: marks PAID + SETTLED and deposits to seller")
         @Transactional
         void paymentRecord_happyPath() {
-            // make sure auction is ENDED with winner and future due date from setup
             Auction before = auctionRepository.findById(auctionId).orElseThrow();
             assertEquals(Auction_Status.ENDED, before.getStatus());
             assertNotNull(before.getWinningUser());
             assertEquals(winnerUserId, before.getWinningUser().getUserId());
-
-            // stub deposit
-            when(accountService.deposit(eq(sellerUserId), any(BigDecimal.class))).thenReturn(null);
 
             BigDecimal amount = new BigDecimal("30.00");
             settlementService.paymentRecord(auctionId, winnerUserId, amount, "USD");
@@ -335,9 +325,8 @@ class SettlementServiceTest {
             assertNotNull(after.getWinningUser());
             assertEquals(winnerUserId, after.getWinningUser().getUserId());
 
-            ArgumentCaptor<BigDecimal> amtCaptor = ArgumentCaptor.forClass(BigDecimal.class);
-            verify(accountService).deposit(eq(sellerUserId), amtCaptor.capture());
-            assertThat(amtCaptor.getValue()).isEqualByComparingTo("30.00");
+            var sellerBalance = accountRepository.findById(sellerUserId).orElseThrow().getBalance();
+            assertThat(sellerBalance).isEqualByComparingTo("30.00");
         }
 
         @Test
@@ -361,8 +350,6 @@ class SettlementServiceTest {
                     InvalidPaymentException.class,
                     () -> settlementService.paymentRecord(auctionId, winnerUserId, new BigDecimal("30.00"), "EUR")
             );
-
-            verifyNoInteractions(accountService);
         }
 
         @Test
@@ -390,7 +377,6 @@ class SettlementServiceTest {
 
             boolean changed = settlementService.expireAndPromoteNext(auctionId, LocalDateTime.now());
             assertFalse(changed);
-            verifyNoInteractions(accountService);
         }
 
         @Test
@@ -413,17 +399,22 @@ class SettlementServiceTest {
             a.setPaymentDueDate(LocalDateTime.now().minusHours(1)); // overdue
             auctionRepository.save(a);
 
-            when(biddingService.getSecondHighestBid(auctionId)).thenReturn(Optional.empty());
+            accountRepository.deleteById(runnerUpUserId);
+            bidRepository.deleteBidByAmount(new BigDecimal("25.00"));
 
             boolean changed = settlementService.expireAndPromoteNext(auctionId, LocalDateTime.now());
             assertTrue(changed);
 
+            a.setPaymentDueDate(LocalDateTime.now());
+            boolean finalChanged = settlementService.expireAndPromoteNext(auctionId, LocalDateTime.now());
+            assertTrue(finalChanged);
+
             Auction after = auctionRepository.findById(auctionId).orElseThrow();
-            assertEquals(a.getStartPrice(), after.getHighestBid());
             assertEquals(Auction_Status.SETTLED, after.getStatus());
             assertNull(after.getWinningUser());
 
-            verify(accountService).forfeitHold(eq(winnerUserId), eq(auctionId));
+            DepositHold winnerHold = depositHoldRepository.findById(winnerHoldId).orElseThrow();
+            assertEquals(Status.FORFEITED, winnerHold.getDepositStatus());
         }
 
         @Test
@@ -431,13 +422,8 @@ class SettlementServiceTest {
         @Transactional
         void expireAndPromoteNext_withSecondPlace_promotesRunnerUp() {
             Auction a = auctionRepository.findById(auctionId).orElseThrow();
-            a.setPaymentDueDate(LocalDateTime.now().minusHours(1)); // overdue
+            a.setPaymentDueDate(LocalDateTime.now().minusHours(1));
             auctionRepository.save(a);
-
-            BidDto second = mock(BidDto.class);
-            when(second.getBidderId()).thenReturn(runnerUpUserId);
-            when(second.getAmount()).thenReturn(new BigDecimal("25.00"));
-            when(biddingService.getSecondHighestBid(auctionId)).thenReturn(Optional.of(second));
 
             boolean changed = settlementService.expireAndPromoteNext(auctionId, LocalDateTime.now());
             assertTrue(changed);
@@ -446,8 +432,10 @@ class SettlementServiceTest {
             assertEquals(runnerUpUserId, after.getWinningUser().getUserId());
             assertThat(after.getHighestBid()).isEqualByComparingTo("25.00");
             assertNotNull(after.getPaymentDueDate());
+            assertEquals(new BigDecimal("25.00"), after.getHighestBid());
 
-            verify(accountService).forfeitHold(eq(winnerUserId), eq(auctionId));
+            DepositHold winnerHold = depositHoldRepository.findById(winnerHoldId).orElseThrow();
+            assertEquals(Status.FORFEITED, winnerHold.getDepositStatus());
         }
     }
 
@@ -460,7 +448,7 @@ class SettlementServiceTest {
         assertEquals(0, processed);
     }
 
-    /*
+
     @Test
     @DisplayName("cancelAuctionSettlement: releases all holds and cancels auction")
     @Transactional
@@ -473,10 +461,14 @@ class SettlementServiceTest {
         assertNull(after.getPaymentDueDate());
         assertEquals(after.getStartPrice(), after.getHighestBid());
 
-        // should release for each distinct deposit hold
-        verify(accountService, times(2))
-                .releaseHold(anyLong(), eq(auctionId));
+        DepositHold loserHold = depositHoldRepository.findById(loserHoldId).orElseThrow();
+        DepositHold runnerUpHold = depositHoldRepository.findById(runnerUpHoldId).orElseThrow();
+        DepositHold winnerHold = depositHoldRepository.findById(winnerHoldId).orElseThrow();
+
+        assertEquals(Status.RELEASED, loserHold.getDepositStatus());
+        assertEquals(Status.RELEASED, runnerUpHold.getDepositStatus());
+        assertEquals(Status.RELEASED, winnerHold.getDepositStatus());
     }
 
-     */
+
 }

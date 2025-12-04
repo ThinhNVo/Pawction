@@ -1,0 +1,474 @@
+package com.voti.pawction.services.auction;
+
+import com.voti.pawction.dtos.response.BidDto;
+import com.voti.pawction.entities.User;
+import com.voti.pawction.entities.auction.Auction;
+import com.voti.pawction.entities.auction.Bid;
+import com.voti.pawction.entities.auction.enums.Auction_Status;
+import com.voti.pawction.entities.auction.enums.Bid_Status;
+import com.voti.pawction.entities.auction.enums.Payment_Status;
+import com.voti.pawction.entities.pet.Pet;
+import com.voti.pawction.entities.pet.enums.Allergy;
+import com.voti.pawction.entities.pet.enums.Category;
+import com.voti.pawction.entities.pet.enums.Sex;
+import com.voti.pawction.entities.pet.enums.Size;
+import com.voti.pawction.entities.wallet.Account;
+import com.voti.pawction.entities.wallet.DepositHold;
+import com.voti.pawction.entities.wallet.enums.Status;
+import com.voti.pawction.exceptions.AuctionExceptions.AuctionInvalidStateException;
+import com.voti.pawction.exceptions.PaymentExceptions.InvalidPaymentException;
+import com.voti.pawction.exceptions.PaymentExceptions.UnauthorizedPaymentException;
+import com.voti.pawction.repositories.UserRepository;
+import com.voti.pawction.repositories.auction.AuctionRepository;
+import com.voti.pawction.repositories.auction.BidRepository;
+import com.voti.pawction.repositories.pet.PetRepository;
+import com.voti.pawction.repositories.wallet.AccountRepository;
+import com.voti.pawction.repositories.wallet.DepositHoldRepository;
+import com.voti.pawction.services.wallet.AccountService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+
+@SpringBootTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+class SettlementServiceTest {
+
+    @Autowired
+    private SettlementService settlementService;
+
+    @Autowired
+    private AuctionRepository auctionRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PetRepository petRepository;
+
+    @Autowired
+    private AccountRepository accountRepository;
+
+    @Autowired
+    private DepositHoldRepository depositHoldRepository;
+
+    @Autowired
+    private BidRepository bidRepository;
+
+    @Autowired
+    private BiddingService biddingService;
+
+    @Autowired
+    private AccountService accountService;
+
+    private Long auctionId;
+    private Long sellerUserId;
+    private Long winnerUserId;
+    private Long runnerUpUserId;
+    private Long loserUserId;
+
+    private Long winnerAccountId;
+    private Long runnerUpAccountId;
+    private long loserAccountId;
+
+    private Long winnerHoldId;
+    private Long runnerUpHoldId;
+    private Long loserHoldId;
+
+    @BeforeEach
+    @Transactional
+    void setUp() {
+        // --- Users ---
+        User seller = new User();
+        seller.setName("Seller");
+        seller.setEmail("seller@example.com");
+        seller.setPasswordHash("secret");
+        seller = userRepository.save(seller);
+        sellerUserId = seller.getUserId();
+
+        User winner = new User();
+        winner.setName("Winner");
+        winner.setEmail("winner@example.com");
+        winner.setPasswordHash("secret");
+        winner = userRepository.save(winner);
+        winnerUserId = winner.getUserId();
+
+        User runnerUp = new User();
+        runnerUp.setName("Runner Up");
+        runnerUp.setEmail("runnerup@example.com");
+        runnerUp.setPasswordHash("secret");
+        runnerUp = userRepository.save(runnerUp);
+        runnerUpUserId = runnerUp.getUserId();
+
+        User loser = new User();
+        loser.setName("Runner Up");
+        loser.setEmail("loser@example.com");
+        loser.setPasswordHash("secret");
+        loser = userRepository.save(loser);
+        loserUserId = loser.getUserId();
+
+        // --- Accounts (just for IDs on holds; real money handled by mocked AccountService) ---
+        Account sellerAcc = new Account();
+        sellerAcc.setUser(seller);
+        sellerAcc.setBalance(BigDecimal.ZERO);
+        sellerAcc.setCreatedAt(LocalDateTime.now());
+        seller.attachNewAccount(sellerAcc);
+        userRepository.save(seller);
+
+        Account winnerAcc = new Account();
+        winnerAcc.setUser(winner);
+        winnerAcc.setBalance(BigDecimal.ZERO);
+        winnerAcc.setCreatedAt(LocalDateTime.now());
+        winner.attachNewAccount(winnerAcc);
+        accountRepository.save(winnerAcc);
+        winnerAccountId = (userRepository.save(winner)).getUserId();
+
+        Account runnerUpAcc = new Account();
+        runnerUpAcc.setUser(runnerUp);
+        runnerUpAcc.setBalance(BigDecimal.ZERO);
+        runnerUpAcc.setCreatedAt(LocalDateTime.now());
+        runnerUp.attachNewAccount(runnerUpAcc);
+        accountRepository.save(runnerUpAcc);
+        runnerUpAccountId = (userRepository.save(runnerUp)).getUserId();
+
+        Account loserAcc = new Account();
+        loserAcc.setUser(loser);
+        loserAcc.setBalance(BigDecimal.ZERO);
+        loserAcc.setCreatedAt(LocalDateTime.now());
+        loser.attachNewAccount(loserAcc);
+        accountRepository.save(loserAcc);
+        loserAccountId = (userRepository.save(loser)).getUserId();
+
+        // --- Pet ---
+        Pet pet = new Pet();
+        pet.setOwner(seller);
+        pet.setPetName("Barkley");
+        pet.setPetAgeMonths(12);
+        pet.setPetSex(Sex.M);
+        pet.setPetWeight(10.0);
+        pet.setPetCategory(Category.Dog);
+        pet.setDogBreed("Beagle");
+        pet.setDogSize(Size.MEDIUM);
+        pet.setDogTemperament("Friendly");
+        pet.setDogIsHypoallergenic(Allergy.UNKNOWN);
+        pet.setPrimaryPhotoUrl("notfound");
+        pet = petRepository.save(pet);
+        seller.addPet(pet);
+        userRepository.save(seller);
+
+        // --- Auction ---
+        LocalDateTime now = LocalDateTime.now();
+        Auction auction = new Auction();
+        auction.setStartPrice(new BigDecimal("20.00"));
+        auction.setHighestBid(new BigDecimal("30.00"));
+        auction.setDescription("Test auction");
+        auction.setStatus(Auction_Status.ENDED);
+        auction.setCreatedAt(now.minusDays(1));
+        auction.setUpdatedAt(now.minusDays(1));
+        auction.setEndTime(now.minusHours(1));
+        auction.setSellingUser(seller);
+        auction.setPet(pet);
+        auction.setWinningUser(winner);
+        auction.setPaymentDueDate(now.plusHours(2));
+        auction = auctionRepository.save(auction);
+        auctionId = auction.getAuctionId();
+
+        // --- Deposit holds (winner + runner-up) ---
+
+        DepositHold winnerHold = winnerAcc.addHold(auction, new BigDecimal("10.00"));
+        depositHoldRepository.save(winnerHold);
+        accountRepository.save(winnerAcc);
+        auction.addDepositHold(winnerHold);
+        auctionRepository.save(auction);
+        depositHoldRepository.save(winnerHold);
+        winnerHoldId = winnerHold.getHoldId();
+
+
+        DepositHold runnerUpHold = runnerUpAcc.addHold(auction, new BigDecimal("10.00"));
+        depositHoldRepository.save(runnerUpHold);
+        accountRepository.save(runnerUpAcc);
+        auction.addDepositHold(runnerUpHold);
+        auctionRepository.save(auction);
+        depositHoldRepository.save(runnerUpHold);
+        runnerUpHoldId = runnerUpHold.getHoldId();
+
+        DepositHold loserHold = loserAcc.addHold(auction, new BigDecimal("10.00"));
+        depositHoldRepository.save(loserHold);
+        accountRepository.save(loserAcc);
+        auction.addDepositHold(loserHold);
+        auctionRepository.save(auction);
+        depositHoldRepository.save(loserHold);
+        loserHoldId = loserHold.getHoldId();
+
+        // --- bids (winner + runner-up) ---
+        Bid loserBid = new Bid();
+        loserBid.setAuction(auction);
+        loserBid.setUser(loser);
+        loserBid.setAmount(new BigDecimal("20.00"));
+        loserBid.setBidStatus(Bid_Status.OUTBID);
+        loserBid.setBidTime(LocalDateTime.now().minusMinutes(3));
+        loserBid = bidRepository.save(loserBid);
+
+        auction.setHighestBid(loserBid.getAmount());
+        auction.setWinningUser(loser);
+        auction.setUpdatedAt(LocalDateTime.now());
+        auctionRepository.save(auction);
+        loser.addBid(auction,loserBid);
+        userRepository.save(loser);
+
+        Bid runnerUpBid = new Bid();
+        runnerUpBid.setAuction(auction);
+        runnerUpBid.setUser(runnerUp);
+        runnerUpBid.setAmount(new BigDecimal("25.00"));
+        runnerUpBid.setBidStatus(Bid_Status.OUTBID);
+        runnerUpBid.setBidTime(LocalDateTime.now().minusMinutes(2));
+        runnerUpBid = bidRepository.save(runnerUpBid);
+
+        auction.setHighestBid(runnerUpBid.getAmount());
+        auction.setWinningUser(runnerUp);
+        auction.setUpdatedAt(LocalDateTime.now());
+        auctionRepository.save(auction);
+        runnerUp.addBid(auction,runnerUpBid);
+        userRepository.save(runnerUp);
+
+        Bid winningBid = new Bid();
+        winningBid.setAuction(auction);
+        winningBid.setUser(winner);
+        winningBid.setAmount(new BigDecimal("30.00"));
+        winningBid.setBidStatus(Bid_Status.WINNING);
+        winningBid.setBidTime(LocalDateTime.now().minusMinutes(1));
+        winningBid = bidRepository.save(winningBid);
+
+        auction.setHighestBid(winningBid.getAmount());
+        auction.setWinningUser(winner);
+        auction.setUpdatedAt(LocalDateTime.now());
+        auctionRepository.save(auction);
+        winner.addBid(auction,winningBid);
+        userRepository.save(winner);
+    }
+
+    @Test
+    @DisplayName("begin: ENDED auction sets winner + due date and releases non-winner holds")
+    @Transactional
+    void begin_endedAuction_setsWinnerAndDueDate_andReleasesHolds() {
+        LocalDateTime dueAt = LocalDateTime.now().plusHours(3);
+
+        settlementService.begin(auctionId, winnerUserId, dueAt);
+
+        Auction reloaded = auctionRepository.findById(auctionId).orElseThrow();
+        assertEquals(Auction_Status.ENDED, reloaded.getStatus());
+        assertNotNull(reloaded.getWinningUser());
+        assertEquals(winnerUserId, reloaded.getWinningUser().getUserId());
+        assertEquals(dueAt, reloaded.getPaymentDueDate());
+
+        DepositHold loserHold = depositHoldRepository.findById(loserHoldId).orElseThrow();
+        assertEquals(Status.RELEASED, loserHold.getDepositStatus());
+    }
+
+    @Test
+    @DisplayName("begin: non-ENDED auction throws")
+    @Transactional
+    void begin_nonEnded_throws() {
+        Auction a = auctionRepository.findById(auctionId).orElseThrow();
+        a.setStatus(Auction_Status.LIVE);
+        auctionRepository.save(a);
+
+        assertThrows(
+                AuctionInvalidStateException.class,
+                () -> settlementService.begin(auctionId, winnerUserId, LocalDateTime.now().plusHours(1))
+        );
+    }
+
+    @Test
+    @DisplayName("noWinner: ENDED auction cleared and SETTLED")
+    @Transactional
+    void noWinner_endedAuction_setsSettled() {
+        settlementService.noWinner(auctionId);
+
+        Auction reloaded = auctionRepository.findById(auctionId).orElseThrow();
+        assertEquals(Auction_Status.SETTLED, reloaded.getStatus());
+        assertNull(reloaded.getWinningUser());
+        assertNull(reloaded.getPaymentDueDate());
+    }
+
+    @Nested
+    @DisplayName("paymentRecord")
+    class PaymentRecordTests {
+
+        @Test
+        @DisplayName("happy path: marks PAID + SETTLED and deposits to seller")
+        @Transactional
+        void paymentRecord_happyPath() {
+            Auction before = auctionRepository.findById(auctionId).orElseThrow();
+            assertEquals(Auction_Status.ENDED, before.getStatus());
+            assertNotNull(before.getWinningUser());
+            assertEquals(winnerUserId, before.getWinningUser().getUserId());
+
+            BigDecimal amount = new BigDecimal("30.00");
+            settlementService.paymentRecord(auctionId, winnerUserId, amount, "USD");
+
+            Auction after = auctionRepository.findById(auctionId).orElseThrow();
+            assertEquals(Payment_Status.PAID, after.getPaymentStatus());
+            assertEquals(Auction_Status.SETTLED, after.getStatus());
+            assertNull(after.getPaymentDueDate());
+            assertNotNull(after.getWinningUser());
+            assertEquals(winnerUserId, after.getWinningUser().getUserId());
+
+            var sellerBalance = accountRepository.findById(sellerUserId).orElseThrow().getBalance();
+            assertThat(sellerBalance).isEqualByComparingTo("30.00");
+        }
+
+        @Test
+        @DisplayName("invalid amount or currency rejected")
+        @Transactional
+        void paymentRecord_invalidAmountOrCurrency_rejected() {
+            // zero amount
+            assertThrows(
+                    InvalidPaymentException.class,
+                    () -> settlementService.paymentRecord(auctionId, winnerUserId, BigDecimal.ZERO, "USD")
+            );
+
+            // null currency
+            assertThrows(
+                    InvalidPaymentException.class,
+                    () -> settlementService.paymentRecord(auctionId, winnerUserId, new BigDecimal("30.00"), null)
+            );
+
+            // unsupported currency
+            assertThrows(
+                    InvalidPaymentException.class,
+                    () -> settlementService.paymentRecord(auctionId, winnerUserId, new BigDecimal("30.00"), "EUR")
+            );
+        }
+
+        @Test
+        @DisplayName("wrong payer rejected with UnauthorizedPaymentException")
+        @Transactional
+        void paymentRecord_wrongPayer_unauthorized() {
+            assertThrows(
+                    UnauthorizedPaymentException.class,
+                    () -> settlementService.paymentRecord(auctionId, runnerUpUserId, new BigDecimal("30.00"), "USD")
+            );
+        }
+    }
+
+    @Nested
+    @DisplayName("expireAndPromoteNext")
+    class ExpireAndPromoteNextTests {
+
+        @Test
+        @DisplayName("no-op when already PAID")
+        @Transactional
+        void expireAndPromoteNext_paid_noOp() {
+            Auction a = auctionRepository.findById(auctionId).orElseThrow();
+            a.setPaymentStatus(Payment_Status.PAID);
+            auctionRepository.save(a);
+
+            boolean changed = settlementService.expireAndPromoteNext(auctionId, LocalDateTime.now());
+            assertFalse(changed);
+        }
+
+        @Test
+        @DisplayName("no-op when payment window not yet due")
+        @Transactional
+        void expireAndPromoteNext_notYetDue_noOp() {
+            Auction a = auctionRepository.findById(auctionId).orElseThrow();
+            a.setPaymentDueDate(LocalDateTime.now().plusHours(5));
+            auctionRepository.save(a);
+
+            boolean changed = settlementService.expireAndPromoteNext(auctionId, LocalDateTime.now());
+            assertFalse(changed);
+        }
+
+        @Test
+        @DisplayName("no second place: forfeits hold, resets price, calls noWinner")
+        @Transactional
+        void expireAndPromoteNext_noSecondPlace_forfeitsAndNoWinner() {
+            Auction a = auctionRepository.findById(auctionId).orElseThrow();
+            a.setPaymentDueDate(LocalDateTime.now().minusHours(1)); // overdue
+            auctionRepository.save(a);
+
+            accountRepository.deleteById(runnerUpUserId);
+            bidRepository.deleteBidByAmount(new BigDecimal("25.00"));
+
+            boolean changed = settlementService.expireAndPromoteNext(auctionId, LocalDateTime.now());
+            assertTrue(changed);
+
+            a.setPaymentDueDate(LocalDateTime.now());
+            boolean finalChanged = settlementService.expireAndPromoteNext(auctionId, LocalDateTime.now());
+            assertTrue(finalChanged);
+
+            Auction after = auctionRepository.findById(auctionId).orElseThrow();
+            assertEquals(Auction_Status.SETTLED, after.getStatus());
+            assertNull(after.getWinningUser());
+
+            DepositHold winnerHold = depositHoldRepository.findById(winnerHoldId).orElseThrow();
+            assertEquals(Status.FORFEITED, winnerHold.getDepositStatus());
+        }
+
+        @Test
+        @DisplayName("second place exists: forfeits current hold and promotes runner-up")
+        @Transactional
+        void expireAndPromoteNext_withSecondPlace_promotesRunnerUp() {
+            Auction a = auctionRepository.findById(auctionId).orElseThrow();
+            a.setPaymentDueDate(LocalDateTime.now().minusHours(1));
+            auctionRepository.save(a);
+
+            boolean changed = settlementService.expireAndPromoteNext(auctionId, LocalDateTime.now());
+            assertTrue(changed);
+
+            Auction after = auctionRepository.findById(auctionId).orElseThrow();
+            assertEquals(runnerUpUserId, after.getWinningUser().getUserId());
+            assertThat(after.getHighestBid()).isEqualByComparingTo("25.00");
+            assertNotNull(after.getPaymentDueDate());
+            assertEquals(new BigDecimal("25.00"), after.getHighestBid());
+
+            DepositHold winnerHold = depositHoldRepository.findById(winnerHoldId).orElseThrow();
+            assertEquals(Status.FORFEITED, winnerHold.getDepositStatus());
+        }
+    }
+
+    @Test
+    @DisplayName("expireOverdueSettlements: no overdue -> 0 processed")
+    @Transactional
+    void expireOverdueSettlements_noOverdue_returnsZero() {
+        // paymentDueDate is in future from setup, so there should be no candidates
+        int processed = settlementService.expireOverdueSettlements();
+        assertEquals(0, processed);
+    }
+
+
+    @Test
+    @DisplayName("cancelAuctionSettlement: releases all holds and cancels auction")
+    @Transactional
+    void cancelAuctionSettlement_releasesAllHolds_andCancels() {
+        settlementService.cancelAuctionSettlement(auctionId);
+
+        Auction after = auctionRepository.findById(auctionId).orElseThrow();
+        assertEquals(Auction_Status.CANCELED, after.getStatus());
+        assertNull(after.getWinningUser());
+        assertNull(after.getPaymentDueDate());
+        assertEquals(after.getStartPrice(), after.getHighestBid());
+
+        DepositHold loserHold = depositHoldRepository.findById(loserHoldId).orElseThrow();
+        DepositHold runnerUpHold = depositHoldRepository.findById(runnerUpHoldId).orElseThrow();
+        DepositHold winnerHold = depositHoldRepository.findById(winnerHoldId).orElseThrow();
+
+        assertEquals(Status.RELEASED, loserHold.getDepositStatus());
+        assertEquals(Status.RELEASED, runnerUpHold.getDepositStatus());
+        assertEquals(Status.RELEASED, winnerHold.getDepositStatus());
+    }
+
+
+}

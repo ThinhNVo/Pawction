@@ -1,5 +1,6 @@
 package com.voti.pawction.repositories.auction;
 
+import com.voti.pawction.entities.auction.Auction;
 import com.voti.pawction.entities.auction.Bid;
 import com.voti.pawction.entities.auction.enums.Bid_Status;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.math.BigDecimal;
 import java.util.Optional;
 
 @Repository
@@ -59,4 +61,5 @@ public interface BidRepository extends JpaRepository<Bid, Long> {
 
     boolean existsByUser_UserIdAndAuction_AuctionId(Long userId, Long auctionId);
 
+    void deleteBidByAmount(BigDecimal amount);
 }

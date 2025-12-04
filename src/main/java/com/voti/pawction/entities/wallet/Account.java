@@ -68,13 +68,14 @@ public class Account {
         if (amount == null || amount.signum() <= 0) throw new IllegalArgumentException("amount must be positive");
 
         DepositHold hold = new DepositHold();
-        hold.setAccount(this);
-        auction.addDepositHold(hold);
         hold.setAmount(amount);
         hold.setDepositStatus(Status.HELD);
         hold.setCreatedAt(LocalDateTime.now());
         hold.setUpdatedAt(LocalDateTime.now());
+        hold.setAuction(auction);
+        hold.setAccount(this);
         holds.add(hold);
+
         return hold;
     }
 

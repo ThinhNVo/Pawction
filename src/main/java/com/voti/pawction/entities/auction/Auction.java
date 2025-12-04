@@ -2,7 +2,6 @@ package com.voti.pawction.entities.auction;
 
 import com.voti.pawction.entities.auction.enums.Auction_Status;
 import com.voti.pawction.entities.auction.enums.Payment_Status;
-import com.voti.pawction.entities.wallet.Account;
 import com.voti.pawction.entities.wallet.DepositHold;
 import com.voti.pawction.entities.User;
 import com.voti.pawction.entities.pet.Pet;

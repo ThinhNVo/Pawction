@@ -11,5 +11,6 @@ public interface BidMapper {
     @Mapping(source = "auction.auctionId", target = "auctionId")
     BidDto toDto(Bid bid);
 
+    @Mapping(source = "bidderId", target = "user.userId")
     Bid toEntity(BidDto dto);
 }

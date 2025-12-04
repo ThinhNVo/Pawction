@@ -18,6 +18,7 @@ import com.voti.pawction.services.auction.AuctionService;
 import com.voti.pawction.services.auction.BiddingService;
 import com.voti.pawction.services.pet.PetService;
 import com.voti.pawction.services.user.UserService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -31,6 +32,7 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Controller
 @AllArgsConstructor
@@ -54,7 +56,7 @@ public class UIController {
     }
 
     @GetMapping("/home")
-    public String showHomePage(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+    public String showHomePage(HttpServletResponse response, HttpSession session, Model model, RedirectAttributes redirectAttributes) {
         try {
             List<Map<String, Object>> products = auctionService.getLiveAuctionsForHomePage();
 
@@ -134,6 +136,43 @@ public class UIController {
             return "product_view";
         } catch (AuctionNotFoundException | PetNotFoundException | UserNotFoundException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", "Unable to load the requested product.");
+            return "redirect:/home";
+        }
+    }
+
+    @GetMapping("/product/{auctionId}/bids")
+    public String showBidHistory(@PathVariable Long auctionId,
+                                 Model model,
+                                 RedirectAttributes redirectAttributes, HttpSession session) {
+        try {
+
+            UserDto user = (UserDto) session.getAttribute("loggedInUser");
+
+            AuctionDto auction = auctionService.getAuctionDto(auctionId);
+            List<BidDto> bids = biddingService.getAllBidsForAuction(auction.getAuctionId());
+            PetDto pet = petService.getPetDtoOrThrow(auction.getPetId());
+
+            Map<Long, UserDto> bidders = new HashMap<>();
+            for (BidDto bid : bids) {
+                UserDto bidder = userService.getUserOrThrow(bid.getBidderId());
+                bidders.put(bid.getBidId(), bidder);
+            }
+
+            Optional<BidDto> winningBidOpt = biddingService.getWinningBid(auctionId);
+            String winningBidderName = winningBidOpt
+                    .map(bid -> userService.getUserOrThrow(bid.getBidderId()).getName())
+                    .orElse("None");
+
+            model.addAttribute("auction", auction);
+            model.addAttribute("pet", pet);
+            model.addAttribute("bids", bids);
+            model.addAttribute("bidders", bidders);
+            model.addAttribute("winningBidderName", winningBidderName);
+
+
+            return "bid_list";
+        } catch (AuctionNotFoundException | PetNotFoundException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Auction not found.");
             return "redirect:/home";
         }
     }

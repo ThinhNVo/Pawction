@@ -1,6 +1,7 @@
 package com.voti.pawction.services.auction;
 
 import com.voti.pawction.dtos.response.BidDto;
+import com.voti.pawction.dtos.response.BidUpdateDto;
 import com.voti.pawction.entities.User;
 import com.voti.pawction.entities.auction.Auction;
 import com.voti.pawction.entities.auction.Bid;
@@ -18,6 +19,7 @@ import com.voti.pawction.repositories.auction.AuctionRepository;
 import com.voti.pawction.repositories.auction.BidRepository;
 import com.voti.pawction.services.auction.impl.BiddingServiceInterface;
 import com.voti.pawction.services.auction.policy.AuctionPolicy;
+import com.voti.pawction.services.socket.AuctionUpdateService;
 import com.voti.pawction.services.wallet.AccountService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,8 +28,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -38,7 +42,7 @@ public class BiddingService implements BiddingServiceInterface {
     private final AuctionPolicy auctionPolicy;
     private final UserRepository userRepository;
     private final AccountService accountService;
-
+    private final AuctionUpdateService auctionUpdateService;
     private final Clock clock;
 
     /**
@@ -116,6 +120,30 @@ public class BiddingService implements BiddingServiceInterface {
 
       //  bidder.addBid(auction,saved);
         userRepository.save(bidder);
+
+        auctionUpdateService.sendAuctionUpdate(
+                auction.getAuctionId(),
+                auction.getHighestBid(),
+                getBidCountForAuction(auction.getAuctionId()),
+                saved.getAmount(),
+                auction.getHighestBid().add(BigDecimal.ONE)
+        );
+
+        var message = new BidUpdateDto(
+                saved.getBidId(),
+                saved.getAuction().getAuctionId(),
+                saved.getUser().getName(),
+                saved.getAmount(),
+                saved.getBidTime(),
+                true    // winning because bid must be higher than previous bids
+        );
+
+        auctionUpdateService.sendBidUpdate(message);
+
+
+
+
+
         return bidMapper.toDto(bid);
     }
 
@@ -132,7 +160,7 @@ public class BiddingService implements BiddingServiceInterface {
     @Override
     public Optional<BidDto> getWinningBid(Long auctionId) {
         var auction = getAuctionOrThrow(auctionId);
-        return bidRepository.findTopByAuctionId(auction.getAuctionId())
+        return bidRepository.findTopByAuction_AuctionIdOrderByAmountDesc(auction.getAuctionId())
                 .map(bidMapper::toDto);
     }
 
@@ -281,4 +309,12 @@ public class BiddingService implements BiddingServiceInterface {
         return auctionRepository.findByIdForUpdate(auctionId)
                 .orElseThrow(()-> new AuctionNotFoundException("Auction not found by id to update: " + auctionId));
     }
+
+    public List<BidDto> getAllBidsForAuction(Long auctionId) {
+        List<Bid> bids = bidRepository.findByAuction_AuctionIdOrderByBidTimeDesc(auctionId);
+        return bids.stream()
+                .map(bidMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
 }

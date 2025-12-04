@@ -22,6 +22,7 @@ import com.voti.pawction.exceptions.AccountExceptions.AccountNotFoundException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -56,6 +57,15 @@ public class AccountService implements AccountServiceInterface {
         }
 
         var auction = getAuctionOrThrow(auctionId);
+        var account = getAccountOrThrow(accountId);
+
+        // Check if hold already exists
+        Optional<DepositHold> existingHold = holdRepository.findByAccountAccountIdAndAuctionAuctionId(accountId, auctionId);
+
+        if (existingHold.isPresent()) {
+            // Just return the existing hold, no update
+            return existingHold.get();
+        }
 
         var a = getAccountOrThrow(accountId);
         var hold = holdRepository.save(a.addHold(auction, amount));

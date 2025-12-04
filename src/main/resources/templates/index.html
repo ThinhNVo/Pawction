@@ -89,10 +89,11 @@
                     <h5 class="card-title" th:text="${product['petName']}"></h5>
                     <p class="card-text flex-grow-1" th:text="${product['description']}"></p>
                     <div class="product-meta mt-auto">
-                        <span class="product-price"
+                        <span class="product-price" th:id="'auction-price-' + ${product['auctionId']}"
                               th:text="'Current Bid Price: $' + ${#numbers.formatDecimal(product['currentPrice'], 1, 'COMMA', 2, 'POINT')}"></span><br>
                         <span class="text-muted small" th:text="'End: '+ ${#temporals.format(product['endDate'], 'MMM d, yyyy h:mm a')}"></span><br>
-                        <span class="text-muted small" th:text="${product['bidCount']} + ' bids'"></span>
+                        <span class="text-muted small" th:id="'auction-bids-' + ${product['auctionId']}"
+                              th:text="${product['bidCount']} + ' bids'"></span>
                     </div>
                 </div>
             </a>
@@ -103,6 +104,8 @@
 
 <!-- Bootstrap JS Bundle (includes Popper) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+<script th:src="@{/js/auction-update.js}"></script>
 </body>
 </html>

@@ -36,8 +36,8 @@
                     </a>
 
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">Cats</a></li>
-                        <li><a class="dropdown-item" href="#">Dogs</a></li>
+                        <li><a class="dropdown-item" th:href="@{/home/category/Cat}">Cats</a></li>
+                        <li><a class="dropdown-item" th:href="@{/home/category/Dog}">Dogs</a></li>
                     </ul>
                 </li>
             </ul>
@@ -76,12 +76,11 @@
 </nav>
 
 <div class="banner-wrapper">
-    <img th:src="@{/images/banner.png}" class="banner-img" alt="pug">
-</div>
-
+    <img th:src="@{${bannerImage}}" class="banner-img" th:alt="${bannerAlt}"></div>
 
 <div class="container-fluid px-4 py-4">
     <div class="row">
+        <h3 class="mb-3" th:text="${pageTitle}">View All Results</h3>
         <div class="col-sm-6 col-md-4 col-lg-3 mb-4 d-flex" th:each="product : ${products}">
             <a th:href="@{'/product/' + ${product['auctionId']}}" class="card flex-fill h-100 product-card text-decoration-none">
                 <img class="card-img-top product-image" th:src="${product['imageUrl']}" th:alt="${product['petName']}">

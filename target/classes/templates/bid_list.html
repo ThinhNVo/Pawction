@@ -4,8 +4,74 @@
     <meta charset="UTF-8">
     <title th:text="'Bid History for Auction ' + ${auction.auctionId}">Bid History</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/custom.css}">
+
 </head>
 <body>
+
+<nav class="navbar navbar-expand-lg" style="background-color: hsla(0, 0%, 83%, 0.87);" data-bs-theme="light">
+    <div class="container-fluid">
+        <a class="navbar-brand" th:href="@{/home}">Pawction</a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <!-- Left-aligned nav links -->
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" aria-current="page" th:href="@{/home}">Home</a>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                       aria-expanded="false">
+                        Category
+                    </a>
+
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#">Cats</a></li>
+                        <li><a class="dropdown-item" href="#">Dogs</a></li>
+                    </ul>
+                </li>
+            </ul>
+
+            <div class="mx-auto" style="flex: 1; max-width: 650px;">
+                <form class="d-flex" role="search">
+                    <input class="form-control" type="search" placeholder="Search" aria-label="Search">
+                </form>
+            </div>
+
+            <ul class="navbar-nav ms-auto" th:if="${!loggedIn}">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/login}">Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/register}">Signup</a>
+                </li>
+            </ul>
+
+            <ul class="navbar-nav ms-auto" th:if="${loggedIn}">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person fs-4 me-2 lh-1"></i> Hello, <span th:text="${user.name}" class="ms-1">User</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#">Profile</a></li>
+                        <li><a class="dropdown-item" href="#">Settings</a></li>
+                        <li><a class="dropdown-item" th:href="@{/auction/add}">Add Auction</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" th:href="@{/logout}">Logout</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
 <div class="container mt-4">
     <h2 th:text="'Bid History for ' + ${pet.petName}"></h2>
 
@@ -14,6 +80,9 @@
     <div class="alert alert-info">
         Currently Winning: <span id="winningBidder" th:text="${winningBidderName}">None</span>
     </div>
+
+    <a th:href="@{/product/{auctionId}(auctionId=${auction.auctionId})}" class="btn btn-secondary">Back to Auction</a>
+
 
     <table class="table table-striped">
         <thead>
@@ -31,8 +100,6 @@
         </tr>
         </tbody>
     </table>
-
-    <a th:href="@{/product/{auctionId}(auctionId=${auction.auctionId})}" class="btn btn-secondary">Back to Auction</a>
 </div>
 
 

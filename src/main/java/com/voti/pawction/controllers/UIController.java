@@ -9,6 +9,7 @@ import com.voti.pawction.entities.User;
 import com.voti.pawction.entities.auction.Auction;
 import com.voti.pawction.entities.auction.enums.Auction_Status;
 import com.voti.pawction.entities.pet.Pet;
+import com.voti.pawction.entities.pet.enums.Category;
 import com.voti.pawction.exceptions.AuctionExceptions.AuctionNotFoundException;
 import com.voti.pawction.exceptions.PetExceptions.PetNotFoundException;
 import com.voti.pawction.exceptions.UserExceptions.UserNotFoundException;
@@ -58,15 +59,21 @@ public class UIController {
     @GetMapping("/home")
     public String showHomePage(HttpServletResponse response, HttpSession session, Model model, RedirectAttributes redirectAttributes) {
         try {
-            List<Map<String, Object>> products = auctionService.getLiveAuctionsForHomePage();
 
-            // enrich each product with bidCount
+            UserDto user = (UserDto) session.getAttribute("loggedInUser");
+
+            List<Map<String, Object>> products = user != null
+                    ? auctionService.getLiveAuctions(user.getUserId(), null)
+                    : auctionService.getLiveAuctions(null, null);
+
             for (Map<String, Object> product : products) {
                 Long auctionId = (Long) product.get("auctionId");
                 int bidCount = biddingService.getBidCountForAuction(auctionId);
                 product.put("bidCount", bidCount);
             }
+
             model.addAttribute("products", products);
+
         } catch (PetNotFoundException ex) {
             model.addAttribute("products", List.of());
             model.addAttribute("errorMessage", "Some auctions could not be displayed due to missing data.");
@@ -75,15 +82,74 @@ public class UIController {
             model.addAttribute("errorMessage", "An unexpected error occurred while loading auctions.");
         }
 
+        model.addAttribute("pageTitle", "View All Results");
+        model.addAttribute("bannerImage", "/images/banner.png");
+
         if (!isLoggedIn(session)) {
             model.addAttribute("loggedIn", false);
             return "index";
         }
 
         UserDto user = (UserDto) session.getAttribute("loggedInUser");
-
         model.addAttribute("loggedIn", true);
         model.addAttribute("user", user);
+        return "index";
+    }
+
+    @GetMapping("/home/category/{type}")
+    public String showCategoryPage(@PathVariable Category type,
+                                   HttpSession session,
+                                   Model model,
+                                   RedirectAttributes redirectAttributes) {
+        try {
+            UserDto user = (UserDto) session.getAttribute("loggedInUser");
+
+            // Pass userId for filtering out their own auctions
+            Long userId = (user != null) ? user.getUserId() : null;
+
+            List<Map<String, Object>> products = auctionService.getLiveAuctions(userId, type);
+
+            for (Map<String, Object> product : products) {
+                Long auctionId = (Long) product.get("auctionId");
+                int bidCount = biddingService.getBidCountForAuction(auctionId);
+                product.put("bidCount", bidCount);
+            }
+
+            model.addAttribute("products", products);
+
+
+            model.addAttribute("category", type);
+        } catch (Exception ex) {
+            model.addAttribute("products", List.of());
+            model.addAttribute("errorMessage", "Could not load category auctions.");
+        }
+
+        switch (type) {
+            case Cat -> {
+                model.addAttribute("pageTitle", "View Cat Auctions");
+                model.addAttribute("bannerImage", "/images/cat_banner.png");
+                model.addAttribute("bannerAlt", "Cat Auctions Banner");
+            }
+            case Dog -> {
+                model.addAttribute("pageTitle", "View Dog Auctions");
+                model.addAttribute("bannerImage", "/images/dog_banner.png");
+                model.addAttribute("bannerAlt", "Dog Auctions Banner");
+            }
+            default -> {
+                model.addAttribute("pageTitle", "View All Results");
+                model.addAttribute("bannerImage", "/images/banner.png");
+                model.addAttribute("bannerAlt", "Pawction Home Banner");
+            }
+        }
+
+        if (!isLoggedIn(session)) {
+            model.addAttribute("loggedIn", false);
+            return "index";
+        }
+
+        model.addAttribute("loggedIn", true);
+        model.addAttribute("user", session.getAttribute("loggedInUser"));
+
         return "index";
     }
 
@@ -113,6 +179,7 @@ public class UIController {
                 model.addAttribute("isAuctionOwner", false);
             } else {
                 model.addAttribute("loggedIn", true);
+                model.addAttribute("user", user);
 
                 // check if this user is the auction owner
                 boolean isAuctionOwner = user.getUserId().equals(auction.getSellingUserId());
@@ -146,9 +213,26 @@ public class UIController {
                                  RedirectAttributes redirectAttributes, HttpSession session) {
         try {
 
+            if (!isLoggedIn(session)) {
+                model.addAttribute("loggedIn", false);
+                redirectAttributes.addFlashAttribute("errorMessage", "You must be logged in to view bid history.");
+                return "redirect:/login";
+            }
+
             UserDto user = (UserDto) session.getAttribute("loggedInUser");
+            model.addAttribute("loggedIn", true);
+            model.addAttribute("user", user);
+
 
             AuctionDto auction = auctionService.getAuctionDto(auctionId);
+
+            boolean hasBid = biddingService.hasUserBidOnAuction(user.getUserId(), auctionId);
+
+            if (!hasBid) {
+                redirectAttributes.addFlashAttribute("errorMessage", "You must have placed a bid to view bid history.");
+                return "redirect:/product/" + auctionId;
+            }
+
             List<BidDto> bids = biddingService.getAllBidsForAuction(auction.getAuctionId());
             PetDto pet = petService.getPetDtoOrThrow(auction.getPetId());
 
@@ -168,7 +252,6 @@ public class UIController {
             model.addAttribute("bids", bids);
             model.addAttribute("bidders", bidders);
             model.addAttribute("winningBidderName", winningBidderName);
-
 
             return "bid_list";
         } catch (AuctionNotFoundException | PetNotFoundException ex) {

@@ -317,4 +317,8 @@ public class BiddingService implements BiddingServiceInterface {
                 .collect(Collectors.toList());
     }
 
+    public boolean hasUserBidOnAuction(Long userId, Long auctionId) {
+        return bidRepository.existsByUser_UserIdAndAuction_AuctionId(userId, auctionId);
+    }
+
 }

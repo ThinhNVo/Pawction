@@ -9,6 +9,7 @@ import com.voti.pawction.entities.User;
 import com.voti.pawction.entities.auction.Auction;
 import com.voti.pawction.entities.auction.enums.Auction_Status;
 import com.voti.pawction.entities.pet.Pet;
+import com.voti.pawction.entities.pet.enums.Category;
 import com.voti.pawction.exceptions.AccountExceptions.InvalidAmountException;
 import com.voti.pawction.exceptions.AuctionExceptions.AuctionInvalidStateException;
 import com.voti.pawction.exceptions.AuctionExceptions.AuctionNotFoundException;
@@ -495,7 +496,7 @@ public class AuctionService implements AuctionServiceInterface {
     }
 
     /**
-     * Retrieve all LIVE auctions for display to display.
+     * Retrieve all LIVE auctions (Auctions that don't belong to logged in user).
      *
      * @return list of product maps containing auction and pet details:
      *         <ul>
@@ -509,12 +510,15 @@ public class AuctionService implements AuctionServiceInterface {
      * @throws IllegalStateException if repository or mapping fails unexpectedly
      */
     @Transactional
-    public List<Map<String, Object>> getLiveAuctionsForHomePage() {
+    public List<Map<String, Object>> getLiveAuctions(Long currentUserId, Category category) {
         return auctionRepository.findByStatus(Auction_Status.LIVE)
                 .stream()
+                // exclude auctions created by the current user
+                .filter(auction -> currentUserId == null || !auction.getSellingUser().getUserId().equals(currentUserId))
+                // filter by category if provided
+                .filter(auction -> category == null || auction.getPet().getPetCategory() == category)
                 .map(auction -> {
                     AuctionDto auctionDto = auctionMapper.toDto(auction);
-
                     Pet pet = petService.getPetOrThrow(auctionDto.getPetId());
 
                     Map<String, Object> product = new HashMap<>();

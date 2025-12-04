@@ -22,6 +22,7 @@ import com.voti.pawction.exceptions.AccountExceptions.AccountNotFoundException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -58,13 +59,17 @@ public class AccountService implements AccountServiceInterface {
         var auction = getAuctionOrThrow(auctionId);
         var account = getAccountOrThrow(accountId);
 
-        var hold = holdRepository.save(account.addHold(auction, amount));
-        accountRepository.save(account);
-        auction.addDepositHold(hold);
-        auctionRepository.save(auction);
+        // Check if hold already exists
+        Optional<DepositHold> existingHold = holdRepository.findByAccountAccountIdAndAuctionAuctionId(accountId, auctionId);
 
-        //final save for hold to have auction
-        holdRepository.save(hold);
+        if (existingHold.isPresent()) {
+            // Just return the existing hold, no update
+            return existingHold.get();
+        }
+
+        var a = getAccountOrThrow(accountId);
+        var hold = holdRepository.save(a.addHold(auction, amount));
+        accountRepository.save(a);
 
         return hold;
     }
@@ -82,28 +87,20 @@ public class AccountService implements AccountServiceInterface {
      */
     @Override
     public DepositHold releaseHold(Long accountId, Long auctionId) {
-        var auction = getAuctionOrThrow(auctionId);
+        var auctionHold = getAuctionOrThrow(auctionId).getDepositHolds();
 
-        var account = getAccountOrThrow(accountId);
+        var a = getAccountOrThrow(accountId);
 
-        var holdOpt = auction.getDepositHolds().stream()
-                .filter(h -> Objects.equals(h.getAccount().getAccountId(),
-                        account.getAccountId()))
-                .findFirst();
+        var releaseHold = auctionHold.stream()
+                .filter(h -> Objects.equals(h.getAccount().getAccountId(), accountId))
+                .filter(h -> h.getDepositStatus() == Status.HELD)
+                .findFirst()
+                .orElseThrow(() -> new InvalidAuctionException("Active hold not found for account on this auction"));
+        releaseHold.setDepositStatus(Status.RELEASED);
 
-        if (holdOpt.isEmpty()) {
-            return null;
-        }
+        a.deposit(releaseHold.getAmount());
 
-        var hold = holdOpt.get();
-
-        if (hold.getDepositStatus() != Status.HELD) {
-            return hold;
-        }
-
-        hold.setDepositStatus(Status.RELEASED);
-
-        return holdRepository.save(hold);
+        return holdRepository.save(releaseHold);
     }
 
     /**

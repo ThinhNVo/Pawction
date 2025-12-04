@@ -147,8 +147,8 @@ public class UserService implements UserServiceInterface {
      * @throws UserNotFoundException if User is not found by id
      */
     @Transactional
-    public User getUserOrThrow(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(()-> new UserNotFoundException("User not found by id: " + userId));
+    public UserDto getUserOrThrow(Long userId) {
+        return userMapper.toDto(userRepository.findById(userId)
+                .orElseThrow(()-> new UserNotFoundException("User not found by id: " + userId)));
     }
 }

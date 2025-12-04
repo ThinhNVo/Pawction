@@ -8,6 +8,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel="spring")
 public interface BidMapper {
     @Mapping(source = "user.userId", target = "bidderId")
+    @Mapping(source = "auction.auctionId", target = "auctionId")
     BidDto toDto(Bid bid);
 
     @Mapping(source = "bidderId", target = "user.userId")

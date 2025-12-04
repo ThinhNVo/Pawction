@@ -1,0 +1,7 @@
+.container { display: flex; gap: 2rem; }
+.image-section { flex: 1; }
+.info-section { flex: 2; }
+.product-title { font-size: 1.8rem; font-weight: bold; }
+.price-box { font-size: 1.5rem; margin: 1rem 0; }
+.btn-primary { background: #0064d2; color: #fff; padding: 0.5rem 1rem; border: none; }
+.action-links a { color: #0064d2; text-decoration: underline; }

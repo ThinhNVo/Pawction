@@ -11,6 +11,8 @@
 </head>
 <body>
 
+<div th:if="${errorMessage}" class="alert alert-warning" th:text="${errorMessage}"></div>
+
 <nav class="navbar navbar-expand-lg" style="background-color: hsla(0, 0%, 83%, 0.87);" data-bs-theme="light">
     <div class="container-fluid">
         <a class="navbar-brand" th:href="@{/home}">Pawction</a>
@@ -34,8 +36,8 @@
                     </a>
 
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">Cats</a></li>
-                        <li><a class="dropdown-item" href="#">Dogs</a></li>
+                        <li><a class="dropdown-item" th:href="@{/home/category/Cat}">Cats</a></li>
+                        <li><a class="dropdown-item" th:href="@{/home/category/Dog}">Dogs</a></li>
                     </ul>
                 </li>
             </ul>
@@ -74,37 +76,35 @@
 </nav>
 
 <div class="banner-wrapper">
-    <img th:src="@{/images/banner.png}" class="banner-img" alt="pug">
-</div>
+    <img th:src="@{${bannerImage}}" class="banner-img" th:alt="${bannerAlt}"></div>
 
-<!--<div class="banner-wrapper">-->
-<!--    <div class="banner-img"-->
-<!--         th:style="'background-image: url('+@{/images/dog1.jpg}+')'">-->
-<!--    </div>-->
-<!--</div>-->
-
-<!-- Auction Items Section -->
-<div class="container mt-4">
-<!--    <img id="home-img" th:src="" >-->
+<div class="container-fluid px-4 py-4">
     <div class="row">
-        <!-- Loop through auction items -->
-        <div class="col-md-4 mb-4" th:each="product : ${products}">
-            <div class="card h-100">
-                <img th:src="@{${product.imageUrl}}" class="card-img-top" th:alt="${product.name}">
-                <div class="card-body">
-                    <h5 class="card-title" th:text="${product.name}">Product Name</h5>
-                    <p class="card-text" th:text="${product.description}">Product Description</p>
-                    <p><strong>Current Price:</strong> $<span th:text="${product.currentPrice}"></span></p>
-                    <p><strong>Ends:</strong> <span th:text="${product.endDate}"></span></p>
+        <h3 class="mb-3" th:text="${pageTitle}">View All Results</h3>
+        <div class="col-sm-6 col-md-4 col-lg-3 mb-4 d-flex" th:each="product : ${products}">
+            <a th:href="@{'/product/' + ${product['auctionId']}}" class="card flex-fill h-100 product-card text-decoration-none">
+                <img class="card-img-top product-image" th:src="${product['imageUrl']}" th:alt="${product['petName']}">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title" th:text="${product['petName']}"></h5>
+                    <p class="card-text flex-grow-1" th:text="${product['description']}"></p>
+                    <div class="product-meta mt-auto">
+                        <span class="product-price" th:id="'auction-price-' + ${product['auctionId']}"
+                              th:text="'Current Bid Price: $' + ${#numbers.formatDecimal(product['currentPrice'], 1, 'COMMA', 2, 'POINT')}"></span><br>
+                        <span class="text-muted small" th:text="'End: '+ ${#temporals.format(product['endDate'], 'MMM d, yyyy h:mm a')}"></span><br>
+                        <span class="text-muted small" th:id="'auction-bids-' + ${product['auctionId']}"
+                              th:text="${product['bidCount']} + ' bids'"></span>
+                    </div>
                 </div>
-                </div>
-            </div>
+            </a>
         </div>
     </div>
 </div>
 
+
 <!-- Bootstrap JS Bundle (includes Popper) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+<script th:src="@{/js/auction-update.js}"></script>
 </body>
 </html>

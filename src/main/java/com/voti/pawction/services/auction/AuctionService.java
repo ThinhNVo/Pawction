@@ -10,6 +10,7 @@ import com.voti.pawction.entities.auction.Auction;
 import com.voti.pawction.entities.auction.enums.Auction_Status;
 import com.voti.pawction.entities.auction.enums.Payment_Status;
 import com.voti.pawction.entities.pet.Pet;
+import com.voti.pawction.entities.pet.enums.Category;
 import com.voti.pawction.exceptions.AccountExceptions.InvalidAmountException;
 import com.voti.pawction.exceptions.AuctionExceptions.AuctionInvalidStateException;
 import com.voti.pawction.exceptions.AuctionExceptions.AuctionNotFoundException;
@@ -31,7 +32,9 @@ import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -105,11 +108,11 @@ public class AuctionService implements AuctionServiceInterface {
         a.setPaymentStatus(Payment_Status.UNPAID);
         a.setPet(pet);
 
-        var saved = auctionRepository.save(a);
-        sellingUser.addAuction(saved);
+        var auction = auctionRepository.save(a);
+        sellingUser.addAuction(auction);
         userRepository.save(sellingUser);
 
-        return auctionMapper.toDto(auctionRepository.save(saved));
+        return auctionMapper.toDto(auction);
     }
 
     /**
@@ -408,7 +411,7 @@ public class AuctionService implements AuctionServiceInterface {
     private void requireEndAbout12HoursFromNow(LocalDateTime endedAt) {
         if (Duration.between(LocalDateTime.now(clock), endedAt)
                 .toHours() < 12) {
-            throw new InvalidAuctionException("Auction new end time must be 12 hours from today");
+            throw new InvalidAuctionException("Auction new end time must be 12 hours from now");
         }
     }
 
@@ -462,7 +465,19 @@ public class AuctionService implements AuctionServiceInterface {
     public Auction getAuctionOrThrow(Long auctionId) {
         return auctionPolicy.getAuctionOrThrow(auctionId);
     }
-    
+
+    /**
+     * Retrieves an auction by id and maps it to a DTO.
+     *
+     * @param auctionId unique auction identifier
+     * @return the auction DTO
+     * @throws AuctionNotFoundException if no auction exists with the given id
+     */
+    public AuctionDto getAuctionDto(Long auctionId) {
+        return auctionMapper.toDto(auctionRepository.findById(auctionId)
+                .orElseThrow(()-> new AuctionNotFoundException("Auction not found by id: " + auctionId)));
+    }
+
     /**
      * Fetches a pet by id or throws if not found.
      *
@@ -484,5 +499,42 @@ public class AuctionService implements AuctionServiceInterface {
     private User getUserOrThrow(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(()-> new UserNotFoundException("User not found by id: " + userId));
+    }
+
+    /**
+     * Retrieve all LIVE auctions (Auctions that don't belong to logged in user).
+     *
+     * @return list of product maps containing auction and pet details:
+     *         <ul>
+     *           <li>auctionId – unique auction identifier</li>
+     *           <li>petName – name of the pet</li>
+     *           <li>imageUrl – primary photo URL of the pet</li>
+     *           <li>currentPrice – current highest bid</li>
+     *           <li>endDate – auction end time</li>
+     *         </ul>
+     *
+     * @throws IllegalStateException if repository or mapping fails unexpectedly
+     */
+    @Transactional
+    public List<Map<String, Object>> getLiveAuctions(Long currentUserId, Category category) {
+        return auctionRepository.findByStatus(Auction_Status.LIVE)
+                .stream()
+                // exclude auctions created by the current user
+                .filter(auction -> currentUserId == null || !auction.getSellingUser().getUserId().equals(currentUserId))
+                // filter by category if provided
+                .filter(auction -> category == null || auction.getPet().getPetCategory() == category)
+                .map(auction -> {
+                    AuctionDto auctionDto = auctionMapper.toDto(auction);
+                    Pet pet = petService.getPetOrThrow(auctionDto.getPetId());
+
+                    Map<String, Object> product = new HashMap<>();
+                    product.put("auctionId", auctionDto.getAuctionId());
+                    product.put("petName", pet.getPetName());
+                    product.put("imageUrl", pet.getPrimaryPhotoUrl());
+                    product.put("currentPrice", auctionDto.getHighestBid());
+                    product.put("endDate", auctionDto.getEndTime());
+                    return product;
+                })
+                .toList();
     }
 }

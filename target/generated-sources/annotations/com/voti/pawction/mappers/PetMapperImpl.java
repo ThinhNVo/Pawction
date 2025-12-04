@@ -14,8 +14,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-12-03T09:11:39-0500",
-    comments = "version: 1.6.2, compiler: javac, environment: Java 21.0.5 (Oracle Corporation)"
+    date = "2025-12-03T23:29:44-0500",
+    comments = "version: 1.6.2, compiler: Eclipse JDT (IDE) 3.44.0.v20251118-1623, environment: Java 21.0.9 (Eclipse Adoptium)"
 )
 @Component
 public class PetMapperImpl implements PetMapper {
@@ -72,19 +72,19 @@ public class PetMapperImpl implements PetMapper {
         Pet.PetBuilder pet = Pet.builder();
 
         pet.owner( petDtoToUser( dto ) );
-        pet.petId( dto.getPetId() );
-        pet.petName( dto.getPetName() );
-        pet.petAgeMonths( dto.getPetAgeMonths() );
-        pet.petSex( dto.getPetSex() );
-        pet.petWeight( dto.getPetWeight() );
-        pet.petCategory( dto.getPetCategory() );
-        pet.dogBreed( dto.getDogBreed() );
-        pet.dogSize( dto.getDogSize() );
-        pet.dogTemperament( dto.getDogTemperament() );
-        pet.dogIsHypoallergenic( dto.getDogIsHypoallergenic() );
         pet.catBreed( dto.getCatBreed() );
         pet.catCoatLength( dto.getCatCoatLength() );
         pet.catIndoorOnly( dto.getCatIndoorOnly() );
+        pet.dogBreed( dto.getDogBreed() );
+        pet.dogIsHypoallergenic( dto.getDogIsHypoallergenic() );
+        pet.dogSize( dto.getDogSize() );
+        pet.dogTemperament( dto.getDogTemperament() );
+        pet.petAgeMonths( dto.getPetAgeMonths() );
+        pet.petCategory( dto.getPetCategory() );
+        pet.petId( dto.getPetId() );
+        pet.petName( dto.getPetName() );
+        pet.petSex( dto.getPetSex() );
+        pet.petWeight( dto.getPetWeight() );
         pet.primaryPhotoUrl( dto.getPrimaryPhotoUrl() );
 
         return pet.build();

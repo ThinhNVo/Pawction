@@ -30,10 +30,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.nio.file.Files;
+import lombok.extern.slf4j.Slf4j; 
 
 @Controller
-@AllArgsConstructor
+@AllArgsConstructor 
+@Slf4j
 public class AuctionController {
     private final AuctionService auctionService;
     private final UserService userService;
@@ -97,7 +98,17 @@ public class AuctionController {
             redirectAttributes.addFlashAttribute("errorMessage", "Resource not found: " + e.getMessage());
             return "redirect:/auction/add";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Unexpected error: " + e.getMessage());
+            // NEW improved logging + safe user-facing message
+            log.error(
+                    "Unexpected error occurred while creating auction for request: {}",
+                    request,
+                    e
+            );
+
+            redirectAttributes.addFlashAttribute(
+                    "errorMessage",
+                    "An unexpected error occurred while creating the auction. Please try again or contact support."
+            );
             return "redirect:/auction/add";
         }
 

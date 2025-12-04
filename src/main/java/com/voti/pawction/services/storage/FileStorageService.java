@@ -59,7 +59,8 @@ public class FileStorageService  implements FileStorageServiceInterface {
 
             return "/uploads/" + filename;
         } catch (IOException e) {
-            throw new RuntimeException("Failed to store file.", e);
+            // Use domain-specific StorageException instead of generic RuntimeException
+            throw new StorageException("Failed to store file: " + e.getMessage());
         }
     }
 }

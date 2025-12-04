@@ -23,7 +23,8 @@ public class AuctionScheduler {
     @Scheduled(cron = "*/30 * * * * *", zone = "${app.zone-id:America/New_York}")
     @SchedulerLock(name = "auction.closeExpired")
     public void closeExpired() {
-        if (!props.isEnabled()) return;
+        if (!props.isEnabled()) 
+            return;
 
         var cutoff = LocalDateTime.now(clock).minusSeconds(Math.max(0, props.getGraceSeconds()));
         try {
@@ -32,8 +33,12 @@ public class AuctionScheduler {
                 log.info("[auction-scheduler] closed {} auctions (cutoff {}, grace {}s)",
                         closed, cutoff, props.getGraceSeconds());
             }
-        } catch (Exception e) {
-            log.error("[auction-scheduler] error (cutoff {}, grace {}s)", cutoff, props.getGraceSeconds(), e);
+        } 
+        // Narrow the exception handling from Exception → RuntimeException
+        catch (RuntimeException e) {
+            log.error("[auction-scheduler] runtime error while closing expired auctions " +
+                            "(cutoff {}, grace {}s)",
+                    cutoff, props.getGraceSeconds(), e);
         }
     }
 }

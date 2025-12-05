@@ -237,7 +237,7 @@ public class AccountService implements AccountServiceInterface {
      */
     private void requirePositive(BigDecimal amt) {
         Objects.requireNonNull(amt, "amount");
-        if (amt.signum() <= 0) throw new InvalidAmountException("amount must be larger than 0");
+        if (amt.signum() <= 0) throw new InvalidAmountException("mount must be larger than 0");
     }
 
     /**

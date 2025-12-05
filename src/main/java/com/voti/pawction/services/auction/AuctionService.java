@@ -16,6 +16,8 @@ import com.voti.pawction.exceptions.AuctionExceptions.AuctionInvalidStateExcepti
 import com.voti.pawction.exceptions.AuctionExceptions.AuctionNotFoundException;
 import com.voti.pawction.exceptions.AuctionExceptions.InvalidAuctionException;
 import com.voti.pawction.exceptions.PetExceptions.PetNotFoundException;
+import com.voti.pawction.exceptions.SearchExceptions.EmptySearchException;
+import com.voti.pawction.exceptions.SearchExceptions.SearchLengthException;
 import com.voti.pawction.exceptions.UserExceptions.UserNotFoundException;
 import com.voti.pawction.mappers.AuctionMapper;
 import com.voti.pawction.repositories.UserRepository;
@@ -32,10 +34,7 @@ import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Application service for Auction lifecycle: create, update, cancel, and end/close.
@@ -537,4 +536,94 @@ public class AuctionService implements AuctionServiceInterface {
                 })
                 .toList();
     }
+
+    /**
+     * Retrieves all auctions created by a specific user and maps them into a simplified
+     * product representation suitable for display in the account view.
+     *
+     * <p>This method queries the {@code auctionRepository} for auctions where the
+     * {@code sellingUser} matches the given {@code userId}. Each auction is converted
+     * into an {@link AuctionDto}, enriched with pet details via {@code petService},
+     * and then mapped into a {@link java.util.Map} containing key attributes:</p>
+     *
+     * <ul>
+     *   <li><b>auctionId</b> – the unique identifier of the auction</li>
+     *   <li><b>petName</b> – the name of the pet being auctioned</li>
+     *   <li><b>imageUrl</b> – the primary photo URL of the pet</li>
+     *   <li><b>currentPrice</b> – the current highest bid for the auction</li>
+     *   <li><b>endDate</b> – the scheduled end time of the auction</li>
+     * </ul>
+     *
+     * @param userId the unique identifier of the user whose auctions should be retrieved
+     * @return a list of maps, each representing an auction with enriched pet details
+     *
+     *
+     */
+    // no exceptions needed here as user existence is already validated in session
+    @Transactional
+    public List<Map<String, Object>> getAuctionsByUser(Long userId) {
+        return auctionRepository.findBySellingUser_UserId(userId).stream()
+                .map(auction -> {
+                    AuctionDto auctionDto = auctionMapper.toDto(auction);
+                    Pet pet = petService.getPetOrThrow(auctionDto.getPetId());
+
+                    Map<String, Object> product = new HashMap<>();
+                    product.put("auctionId", auctionDto.getAuctionId());
+                    product.put("petName", pet.getPetName());
+                    product.put("imageUrl", pet.getPrimaryPhotoUrl());
+                    product.put("currentPrice", auctionDto.getHighestBid());
+                    product.put("endDate", auctionDto.getEndTime());
+                    return product;
+                })
+                .toList();
+    }
+
+    /**
+     * Search for LIVE auctions by pet breed (cat or dog).
+     *
+     * @param userId the unique identifier of the user performing the search
+     * @param breed the breed search term (must be at least 3 letters)
+     * @return a list of maps, each representing an auction with enriched pet details:
+     *         <ul>
+     *           <li>auctionId – unique auction identifier</li>
+     *           <li>petName – name of the pet</li>
+     *           <li>imageUrl – primary photo URL of the pet</li>
+     *           <li>currentPrice – current highest bid</li>
+     *           <li>endDate – auction end time</li>
+     *         </ul>
+     * @throws EmptySearchException if the breed search term is null
+     * @throws SearchLengthException if the breed search term is less than 3 letters
+     */
+    @Transactional
+    public List<Map<String, Object>> getLiveAuctionsByBreed(Long userId, String breed) {
+        if (breed == null) {
+            throw new EmptySearchException("Breed search term cannot be null");
+        }
+
+        String normalized = breed.trim().replaceAll("\\s+", "");
+        if (normalized.length() < 3) {
+            throw new SearchLengthException("Breed search term must be at least 3 letters long");
+        }
+
+        List<Auction> allAuctions = auctionRepository.findByNormalizedBreedExcludingOwner(breed, userId);
+
+        return allAuctions.stream()
+                .map(auction -> {
+                    AuctionDto dto = auctionMapper.toDto(auction);
+                    Pet pet = petService.getPetOrThrow(dto.getPetId());
+
+                    Map<String, Object> product = new HashMap<>();
+                    product.put("auctionId", dto.getAuctionId());
+                    product.put("petName", pet.getPetName());
+                    product.put("imageUrl", pet.getPrimaryPhotoUrl());
+                    product.put("currentPrice", dto.getHighestBid());
+                    product.put("endDate", dto.getEndTime());
+                    return product;
+                })
+                .toList();
+    }
+
+
+
+
 }

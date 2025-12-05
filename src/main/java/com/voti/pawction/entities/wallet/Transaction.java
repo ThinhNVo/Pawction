@@ -28,7 +28,7 @@ public class Transaction {
     @Column(name = "tx_type", nullable = false)
     private Transaction_Type transactionType;
 
-    @Column(nullable = false)
+    @Column(name = "amount", nullable = false, precision = 19, scale = 2)
     private BigDecimal amount;
 
     @Column(name = "occurred_at", nullable = false)
@@ -36,7 +36,7 @@ public class Transaction {
 
     //Transaction to Account Relation
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "account_id")
+    @JoinColumn(name = "account_id", nullable = false)
     @ToString.Exclude
     private Account account;
 

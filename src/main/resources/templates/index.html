@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pawction - Home</title>
+    <title th:text="${pageTitle}">Pawction - Home</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
@@ -11,7 +11,7 @@
 </head>
 <body>
 
-<div th:if="${errorMessage}" class="alert alert-warning" th:text="${errorMessage}"></div>
+<div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
 <nav class="navbar navbar-expand-lg" style="background-color: hsla(0, 0%, 83%, 0.87);" data-bs-theme="light">
     <div class="container-fluid">
@@ -43,19 +43,29 @@
             </ul>
 
             <div class="mx-auto" style="flex: 1; max-width: 650px;">
-                <form class="d-flex" role="search">
-                    <input class="form-control" type="search" placeholder="Search" aria-label="Search">
+                <form class="d-flex" role="search" th:action="@{/search}" method="get" onsubmit="return validateBreed()">
+                    <input id="breedInput" class="form-control"
+                           type="search"
+                           name="breed"
+                           placeholder="Search by breed"
+                           aria-label="Search"
+                           th:value="${param.breed}"
+                           required
+                           minlength="3"
+                           pattern=".*\S.*"
+                           oninvalid="this.setCustomValidity('Search term must be at least 3 letters')"
+                           oninput="this.setCustomValidity('')" />
                 </form>
             </div>
 
-                <ul class="navbar-nav ms-auto" th:if="${!loggedIn}">
-                    <li class="nav-item">
-                        <a class="nav-link" th:href="@{/login}">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" th:href="@{/register}">Signup</a>
-                    </li>
-                </ul>
+            <ul class="navbar-nav ms-auto" th:if="${!loggedIn}">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/login}">Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/register}">Signup</a>
+                </li>
+            </ul>
 
             <ul class="navbar-nav ms-auto" th:if="${loggedIn}">
                 <li class="nav-item dropdown">
@@ -63,8 +73,7 @@
                         <i class="bi bi-person fs-4 me-2 lh-1"></i> Hello, <span th:text="${user.name}" class="ms-1">User</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#">Profile</a></li>
-                        <li><a class="dropdown-item" href="#">Settings</a></li>
+                        <li><a class="dropdown-item" th:href="@{/account}">Account</a></li>
                         <li><a class="dropdown-item" th:href="@{/auction/add}">Add Auction</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" th:href="@{/logout}">Logout</a></li>
@@ -76,11 +85,12 @@
 </nav>
 
 <div class="banner-wrapper">
-    <img th:src="@{${bannerImage}}" class="banner-img" th:alt="${bannerAlt}"></div>
+    <img th:src="@{${bannerImage}}" class="banner-img" th:alt="${bannerAlt}">
+</div>
 
 <div class="container-fluid px-4 py-4">
     <div class="row">
-        <h3 class="mb-3" th:text="${pageTitle}">View All Results</h3>
+        <h3 class="mb-3" th:text="${pageText}">View All Results</h3>
         <div class="col-sm-6 col-md-4 col-lg-3 mb-4 d-flex" th:each="product : ${products}">
             <a th:href="@{'/product/' + ${product['auctionId']}}" class="card flex-fill h-100 product-card text-decoration-none">
                 <img class="card-img-top product-image" th:src="${product['imageUrl']}" th:alt="${product['petName']}">
@@ -106,5 +116,6 @@
 <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.1/dist/sockjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
 <script th:src="@{/js/auction-update.js}"></script>
+<script th:src="@{/js/form-validation.js}"></script>
 </body>
 </html>

@@ -10,6 +10,13 @@ stompClient.connect({}, function(frame) {
         updateHomePage(update);
     });
 
+    stompClient.subscribe('/topic/myAccount', function(message) {
+        var update = JSON.parse(message.body);
+        updateMyAccount(update);
+    });
+
+
+
     // Subscribe to specific auction (product view page)
     var auctionIdElement = document.getElementById("auctionId");
     if (auctionIdElement) {
@@ -42,6 +49,17 @@ function updateHomePage(update) {
     }
     if (bidsEl) {
         bidsEl.innerText = update.bidCount + " bids";
+    }
+}
+
+function updateMyAccount(update) {
+    let priceEl = document.getElementById('auction-price-' + update.auctionId);
+    let bidsEl = document.getElementById('auction-bids-' + update.auctionId);
+    if (priceEl) {
+        priceEl.textContent = 'Current Bid Price: $' + formatCurrency(update.highestBid);
+    }
+    if (bidsEl) {
+        bidsEl.textContent = update.bidCount + ' bids';
     }
 }
 

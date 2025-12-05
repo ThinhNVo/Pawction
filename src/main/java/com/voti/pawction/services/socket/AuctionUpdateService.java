@@ -17,7 +17,7 @@ public class AuctionUpdateService {
         AuctionUpdateDto message = new AuctionUpdateDto(auctionId, highestBid, bidCount, userBidAmount, minNextBidAmount);
 
         messagingTemplate.convertAndSend("/topic/auction/" + auctionId, message);
-
+        messagingTemplate.convertAndSend("/topic/myAccount", message);
         messagingTemplate.convertAndSend("/topic/home", message);
     }
 

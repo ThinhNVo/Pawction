@@ -38,7 +38,7 @@ public interface BidRepository extends JpaRepository<Bid, Long> {
         WHERE b.auction_id = :auctionId\s
         ORDER BY amount DESC, bid_time \s
        \s""", nativeQuery = true)
-    Optional<Bid> findByAuctionIdOrderByAmountDescBidTimeAsc(@Param("auctionId")Long auctionId);
+    Optional<Bid> findByAuctionIdOrderByAmountDescBidTimeAsc(@Param("auctionId") Long auctionId);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
@@ -62,4 +62,6 @@ public interface BidRepository extends JpaRepository<Bid, Long> {
     boolean existsByUser_UserIdAndAuction_AuctionId(Long userId, Long auctionId);
 
     void deleteBidByAmount(BigDecimal amount);
+
+    List<Bid> findByUser_UserId(Long userId);
 }

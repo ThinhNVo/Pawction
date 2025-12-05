@@ -40,8 +40,18 @@
             </ul>
 
             <div class="mx-auto" style="flex: 1; max-width: 650px;">
-                <form class="d-flex" role="search">
-                    <input class="form-control" type="search" placeholder="Search" aria-label="Search">
+                <form class="d-flex" role="search" th:action="@{/search}" method="get" onsubmit="return validateBreed()">
+                    <input id="breedInput" class="form-control"
+                           type="search"
+                           name="breed"
+                           placeholder="Search by breed"
+                           aria-label="Search"
+                           th:value="${param.breed}"
+                           required
+                           minlength="3"
+                           pattern=".*\S.*"
+                           oninvalid="this.setCustomValidity('Search term must be at least 3 letters')"
+                           oninput="this.setCustomValidity('')" />
                 </form>
             </div>
 
@@ -60,8 +70,7 @@
                         <i class="bi bi-person fs-4 me-2 lh-1"></i> Hello, <span th:text="${user.name}" class="ms-1">User</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#">Profile</a></li>
-                        <li><a class="dropdown-item" href="#">Settings</a></li>
+                        <li><a class="dropdown-item" th:href="@{/account}">Account</a></li>
                         <li><a class="dropdown-item" th:href="@{/auction/add}">Add Auction</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" th:href="@{/logout}">Logout</a></li>
@@ -81,7 +90,7 @@
         Currently Winning: <span id="winningBidder" th:text="${winningBidderName}">None</span>
     </div>
 
-    <a th:href="@{/product/{auctionId}(auctionId=${auction.auctionId})}" class="btn btn-secondary">Back to Auction</a>
+    <a th:href="@{/product/{auctionId}(auctionId=${auction.auctionId})}" class="btn btn-secondary">Back to Product</a>
 
 
     <table class="table table-striped">
@@ -107,6 +116,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.1/dist/sockjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
 <script th:src="@{/js/auction-update.js}"></script>
+<script th:src="@{/js/form-validation.js}"></script>
 </body>
 </html>
 

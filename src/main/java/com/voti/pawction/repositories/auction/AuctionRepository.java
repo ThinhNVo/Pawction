@@ -1,7 +1,9 @@
 package com.voti.pawction.repositories.auction;
 
 import com.voti.pawction.entities.auction.Auction;
+import com.voti.pawction.entities.auction.Bid;
 import com.voti.pawction.entities.auction.enums.Auction_Status;
+import com.voti.pawction.entities.pet.enums.Category;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -48,4 +50,21 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
     boolean existsByPet_PetId(Long petId);
 
     List<Auction> findByStatus(Auction_Status status);
+
+    List<Auction> findBySellingUser_UserId(Long userId);
+
+//    List<Auction> findByPet_CatBreedContainingIgnoreCase(String breed);
+//    List<Auction> findByPet_DogBreedContainingIgnoreCase(String breed);
+
+    @Query("SELECT DISTINCT a FROM Auction a JOIN a.pet p " +
+            "WHERE (REPLACE(LOWER(p.catBreed), ' ', '') LIKE CONCAT('%', :breed, '%') " +
+            "   OR REPLACE(LOWER(p.dogBreed), ' ', '') LIKE CONCAT('%', :breed, '%')) " +
+            "AND (:userId IS NULL OR a.sellingUser.userId <> :userId)")
+    List<Auction> findByNormalizedBreedExcludingOwner(@Param("breed") String breed,
+                                                      @Param("userId") Long userId);
+
+
+
 }
+
+

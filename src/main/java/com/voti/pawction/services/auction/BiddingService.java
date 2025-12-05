@@ -1,5 +1,6 @@
 package com.voti.pawction.services.auction;
 
+import com.voti.pawction.dtos.response.AuctionDto;
 import com.voti.pawction.dtos.response.BidDto;
 import com.voti.pawction.dtos.response.BidUpdateDto;
 import com.voti.pawction.entities.User;
@@ -7,18 +8,21 @@ import com.voti.pawction.entities.auction.Auction;
 import com.voti.pawction.entities.auction.Bid;
 import com.voti.pawction.entities.auction.enums.Auction_Status;
 import com.voti.pawction.entities.auction.enums.Bid_Status;
+import com.voti.pawction.entities.pet.Pet;
 import com.voti.pawction.exceptions.AccountExceptions.InvalidAmountException;
 import com.voti.pawction.exceptions.AuctionExceptions.AuctionInvalidStateException;
 import com.voti.pawction.exceptions.AuctionExceptions.AuctionNotFoundException;
 import com.voti.pawction.exceptions.BidExceptions.BidNotFoundException;
 import com.voti.pawction.exceptions.BidExceptions.InvalidBidException;
 import com.voti.pawction.exceptions.UserExceptions.UserNotFoundException;
+import com.voti.pawction.mappers.AuctionMapper;
 import com.voti.pawction.mappers.BidMapper;
 import com.voti.pawction.repositories.UserRepository;
 import com.voti.pawction.repositories.auction.AuctionRepository;
 import com.voti.pawction.repositories.auction.BidRepository;
 import com.voti.pawction.services.auction.impl.BiddingServiceInterface;
 import com.voti.pawction.services.auction.policy.AuctionPolicy;
+import com.voti.pawction.services.pet.PetService;
 import com.voti.pawction.services.socket.AuctionUpdateService;
 import com.voti.pawction.services.wallet.AccountService;
 import lombok.AllArgsConstructor;
@@ -28,9 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,6 +46,9 @@ public class BiddingService implements BiddingServiceInterface {
     private final AccountService accountService;
     private final AuctionUpdateService auctionUpdateService;
     private final Clock clock;
+    private final AuctionMapper auctionMapper;
+    private final PetService petService;
+
 
     /**
      * Places a bid on a LIVE auction on behalf of the given bidder.
@@ -310,6 +315,7 @@ public class BiddingService implements BiddingServiceInterface {
                 .orElseThrow(()-> new AuctionNotFoundException("Auction not found by id to update: " + auctionId));
     }
 
+    // no exception, just return empty list
     public List<BidDto> getAllBidsForAuction(Long auctionId) {
         List<Bid> bids = bidRepository.findByAuction_AuctionIdOrderByBidTimeDesc(auctionId);
         return bids.stream()
@@ -317,8 +323,52 @@ public class BiddingService implements BiddingServiceInterface {
                 .collect(Collectors.toList());
     }
 
+    // no exception, just return boolean
     public boolean hasUserBidOnAuction(Long userId, Long auctionId) {
         return bidRepository.existsByUser_UserIdAndAuction_AuctionId(userId, auctionId);
+    }
+
+    /**
+     * Retrieves all distinct auctions that a specific user has placed bids on,
+     * and maps them into a simplified product representation suitable for display.
+     *
+     * <p>This method queries the {@code bidRepository} for all bids made by the given
+     * {@code userId}, extracts the associated auctions, removes duplicates with {@code distinct()},
+     * and then converts each auction into an {@link AuctionDto}. Pet details are enriched
+     * via {@code petService}, and the auction is mapped into a {@link java.util.Map}
+     * containing key attributes:</p>
+     *
+     * <ul>
+     *   <li><b>auctionId</b> – the unique identifier of the auction</li>
+     *   <li><b>petName</b> – the name of the pet being auctioned</li>
+     *   <li><b>imageUrl</b> – the primary photo URL of the pet</li>
+     *   <li><b>currentPrice</b> – the current highest bid for the auction</li>
+     *   <li><b>endDate</b> – the scheduled end time of the auction</li>
+     * </ul>
+     *
+     * @param userId the unique identifier of the user whose bidding history should be retrieved
+     * @return a list of maps, each representing an auction the user has bid on,
+     *         enriched with pet details and current auction information
+     */
+    // no exception to throw, just return empty list
+    @Transactional
+    public List<Map<String, Object>> getAuctionsUserHasBiddedOn(Long userId) {
+        return bidRepository.findByUser_UserId(userId).stream()
+                .map(Bid::getAuction)
+                .distinct()
+                .map(auction -> {
+                    AuctionDto auctionDto = auctionMapper.toDto(auction);
+                    Pet pet = petService.getPetOrThrow(auctionDto.getPetId());
+
+                    Map<String, Object> product = new HashMap<>();
+                    product.put("auctionId", auctionDto.getAuctionId());
+                    product.put("petName", pet.getPetName());
+                    product.put("imageUrl", pet.getPrimaryPhotoUrl());
+                    product.put("currentPrice", auctionDto.getHighestBid());
+                    product.put("endDate", auctionDto.getEndTime());
+                    return product;
+                })
+                .toList();
     }
 
 }

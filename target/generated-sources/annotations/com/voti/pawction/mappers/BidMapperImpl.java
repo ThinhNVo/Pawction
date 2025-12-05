@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-12-04T03:47:59-0500",
+    date = "2025-12-04T18:57:30-0500",
     comments = "version: 1.6.2, compiler: javac, environment: Java 21.0.8 (Microsoft)"
 )
 @Component
@@ -51,6 +51,7 @@ public class BidMapperImpl implements BidMapper {
 
         Bid.BidBuilder bid = Bid.builder();
 
+        bid.user( bidDtoToUser( dto ) );
         bid.bidId( dto.getBidId() );
         bid.amount( dto.getAmount() );
         bid.bidTime( dto.getBidTime() );
@@ -72,5 +73,17 @@ public class BidMapperImpl implements BidMapper {
             return null;
         }
         return auction.getAuctionId();
+    }
+
+    protected User bidDtoToUser(BidDto bidDto) {
+        if ( bidDto == null ) {
+            return null;
+        }
+
+        User.UserBuilder user = User.builder();
+
+        user.userId( bidDto.getBidderId() );
+
+        return user.build();
     }
 }

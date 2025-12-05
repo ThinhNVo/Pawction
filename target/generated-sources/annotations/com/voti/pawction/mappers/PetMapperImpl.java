@@ -1,6 +1,7 @@
 package com.voti.pawction.mappers;
 
 import com.voti.pawction.dtos.response.PetDto;
+import com.voti.pawction.entities.User;
 import com.voti.pawction.entities.pet.Pet;
 import com.voti.pawction.entities.pet.enums.Allergy;
 import com.voti.pawction.entities.pet.enums.Category;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-12-04T01:34:18-0500",
+    date = "2025-12-04T18:57:30-0500",
     comments = "version: 1.6.2, compiler: javac, environment: Java 21.0.8 (Microsoft)"
 )
 @Component
@@ -25,6 +26,7 @@ public class PetMapperImpl implements PetMapper {
             return null;
         }
 
+        Long ownerId = null;
         Long petId = null;
         String petName = null;
         int petAgeMonths = 0;
@@ -40,6 +42,7 @@ public class PetMapperImpl implements PetMapper {
         Indoor catIndoorOnly = null;
         String primaryPhotoUrl = null;
 
+        ownerId = petOwnerUserId( pet );
         petId = pet.getPetId();
         petName = pet.getPetName();
         petAgeMonths = pet.getPetAgeMonths();
@@ -55,8 +58,6 @@ public class PetMapperImpl implements PetMapper {
         catIndoorOnly = pet.getCatIndoorOnly();
         primaryPhotoUrl = pet.getPrimaryPhotoUrl();
 
-        Long ownerId = null;
-
         PetDto petDto = new PetDto( petId, petName, petAgeMonths, petSex, petWeight, petCategory, dogBreed, dogSize, dogTemperament, dogIsHypoallergenic, catBreed, catCoatLength, catIndoorOnly, primaryPhotoUrl, ownerId );
 
         return petDto;
@@ -70,6 +71,7 @@ public class PetMapperImpl implements PetMapper {
 
         Pet.PetBuilder pet = Pet.builder();
 
+        pet.owner( petDtoToUser( dto ) );
         pet.petId( dto.getPetId() );
         pet.petName( dto.getPetName() );
         pet.petAgeMonths( dto.getPetAgeMonths() );
@@ -86,5 +88,25 @@ public class PetMapperImpl implements PetMapper {
         pet.primaryPhotoUrl( dto.getPrimaryPhotoUrl() );
 
         return pet.build();
+    }
+
+    private Long petOwnerUserId(Pet pet) {
+        User owner = pet.getOwner();
+        if ( owner == null ) {
+            return null;
+        }
+        return owner.getUserId();
+    }
+
+    protected User petDtoToUser(PetDto petDto) {
+        if ( petDto == null ) {
+            return null;
+        }
+
+        User.UserBuilder user = User.builder();
+
+        user.userId( petDto.getOwnerId() );
+
+        return user.build();
     }
 }

@@ -36,8 +36,7 @@ public class Account {
 
     //Account to Transaction Relation
     @Builder.Default
-    @OneToMany(mappedBy = "account", cascade = {CascadeType.PERSIST,
-            CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @ToString.Exclude
     private List<Transaction> transactions = new ArrayList<>();
 

@@ -141,6 +141,7 @@ public class AccountService implements AccountServiceInterface {
      * @throws AccountNotFoundException if account is not found by id
      */
     @Override
+    @Transactional
     public Transaction deposit(Long accountId, BigDecimal amount) {
         requirePositive(amount);
         Account a = getAccountOrThrow(accountId);
@@ -162,6 +163,7 @@ public class AccountService implements AccountServiceInterface {
      * @throws AccountNotFoundException if account is not found by id
      */
     @Override
+    @Transactional
     public Transaction withdraw(Long accountId, BigDecimal amount) {
         requirePositive(amount);
         if (getAvailable(accountId).compareTo(amount) < 0) {
@@ -170,7 +172,8 @@ public class AccountService implements AccountServiceInterface {
         var a = getAccountOrThrow(accountId);
         Transaction withdraw = a.withdraw(amount);
         accountRepository.save(a);
-        return txRepository.save(withdraw);
+        return withdraw;
+        //return txRepository.save(withdraw);
     }
     /**
      * Returns the current balance stored on the account database.

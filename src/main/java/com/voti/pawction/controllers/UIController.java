@@ -30,10 +30,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.text.NumberFormat;
+import java.util.*;
 
 @Controller
 @AllArgsConstructor
@@ -360,5 +358,53 @@ public class UIController {
 
         return "search_page";
     }
+
+    @PostMapping("/account/{userId}/funds")
+    public String manageFunds(@PathVariable Long userId,
+                              @RequestParam BigDecimal amount,
+                              @RequestParam String actionType,
+                              HttpSession session,
+                              RedirectAttributes redirectAttributes) {
+        if (!isLoggedIn(session)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "You must be logged in to manage funds.");
+            return "redirect:/login";
+        }
+
+        UserDto user = (UserDto) session.getAttribute("loggedInUser");
+        if (user == null || !user.getUserId().equals(userId)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Unauthorized account access.");
+            return "redirect:/login";
+        }
+
+        try {
+            Account account = accountService.getAccountOrThrow(userId);
+            Long accountId = account.getAccountId();
+
+            NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(Locale.US);
+            String formattedAmount = currencyFormatter.format(amount);
+
+            if ("deposit".equalsIgnoreCase(actionType)) {
+                accountService.deposit(accountId, amount);
+                redirectAttributes.addFlashAttribute("successMessage", "Successfully deposited " + formattedAmount);
+            } else if ("withdraw".equalsIgnoreCase(actionType)) {
+                accountService.withdraw(accountId, amount);
+                redirectAttributes.addFlashAttribute("successMessage", "Successfully withdrew " + formattedAmount);
+            } else {
+                redirectAttributes.addFlashAttribute("errorMessage", "Invalid action specified.");
+            }
+        } catch (AccountNotFoundException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Account not found: " + ex.getMessage());
+        } catch (InvalidAmountException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Invalid amount: " + ex.getMessage());
+        } catch (NullPointerException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Amount must not be null.");
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Operation failed: " + ex.getMessage());
+        }
+
+        return "redirect:/account";
+    }
+
+
 
 }

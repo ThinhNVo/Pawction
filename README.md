@@ -2,7 +2,6 @@
 
 Team Members: 
 - Dinesh Adhikari 
-- Paul Morris 
 - Khagendra Dhungel 
 - Thinh Vo
 

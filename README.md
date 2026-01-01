@@ -1,86 +1,94 @@
-# Pawction
+# Pawction 🐾
 
-Team Members: 
-- Dinesh Adhikari 
-- Khagendra Dhungel 
-- Thinh Vo
+**Team Members:** Dinesh Adhikari | Khagendra Dhungel | Thinh Vo
 
-Pet breeders, sellers, and even owners often struggle to find the right home for their pets. The process can take months, relying heavily on word-of-mouth or social media groups that lack structure, security, and efficiency. This leaves sellers uncertain about finding a trustworthy buyer, and buyers without a streamlined way to demonstrate genuine interest or compete fairly for a pet they truly want. That’s where our platform comes in, creating a safe, trustworthy, and heartwarming space where pets meet their perfect matches. With real-time bidding and a community built on trust, we make it easier, faster, and more meaningful to find the right home at the right time.
+Pawction is a real-time pet auction platform that connects pet sellers and buyers in a secure, structured, and efficient way. Traditional methods like word-of-mouth or social media are slow and unreliable, leaving sellers uncertain and buyers without fair competition. Pawction provides a safe, trustworthy, and heartwarming space where pets meet their perfect homes, with real-time bidding and community-driven trust.
 
 ---
 
 ## Table of Contents
-
-1. [Overview](#overview)  
-2. [Features](#features)  
-3. [Architecture](#architecture)
-4. [Scrum Roles](#Scrum-roles)
-5. [Getting Started](#getting-started)  
-   - [Prerequisites](#prerequisites)  
-   - [Installation](#installation)  
+- [Overview](#overview)
+- [Features](#features)
+- [Architecture](#architecture)
+- [Scrum Roles](#scrum-roles)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
 
 ---
 
 ## Overview
 
-Pawctions enables users to:
-
-- Register and manage profile  
-- List items (pet adoption auctions) 
+Pawction enables users to:  
+- Register and manage profiles  
+- List items (pet adoption auctions)  
 - Place real-time bids on active auctions  
-- Receive live updates when outbid  
-- Handle payments 
+- Receive notifications when the auction ends 
+- Handle payments securely
 
 ---
 
 ## Features
 
-- Auction creation (title, description, starting price, end time)  
-- Placing bids with validation and concurrency safety  
-- Real-time updates of highest bids 
-- Ability to purchase item after bid ends 
-- Search for specific items (ability to filter by specific criteria)
+- **Auction Creation:** title, description, starting price, and end time  
+- **Placing Bids:** with validation and concurrency safety  
+- **Real-Time Updates:** highest bids and notifications  
+- **Purchase Handling:** complete payment after winning bid  
+- **Search & Filter:** find specific pets by criteria  
 
 ---
 
 ## Architecture
 
-At a high level:
+**High-Level Flow:**
 
-- Clients (Web) 
-- API Gateway or controller layer routes requests  
-- Backend services: User, Auction, Payment, Notification, Admin  
-- Persistence: relational DB (for users, auctions, bids)
+**Frontend (Web)**  
+- UI: Login/Register, Browse Pets, Place Bids, Add Auctions, Add funds, View History  
+
+**Backend Services:**  
+- **User Service:** registration, authentication  
+- **Pet Service:** register/update pets, manage images  
+- **Auction Service:** create/update details/cancel/end auctions  
+- **Bidding Service:** place bids, validate, finalize  
+- **Settlement Service:** winner selection, payment  
+- **Account/Wallet Service:** deposit, hold, forfeit, release  
+- **Auction Policy:** bid increments, deposit rules
+- **Socket:** update bids and current winner
+- **File Storage Service:** store multiple images of pet
+
+**Database/Entity Layer:**  
+- User table
+- Account table
+- Pet table
+- Auction & bid tables
+- Deposit Hold & Transaction tables 
+
+**Other Technical Notes:**  
+- Real-time bid handling via WebSocket  
+- Relational DB for users, auctions, bids, and transactions  
 
 ---
 
 ## Scrum Roles
 
-Product Owner: Thinh Vo, Khagendra Dhungel, Dinesh Adhikari 
-
-Scrum Master: Thinh Vo
-
-DevOps person: Khagendra Dhungel
-
-Frontend Team: Dinesh Adhikari 
-
-Backend Team: Dinesh Adhikari, Thinh Vo
+- **Product Owners:** Thinh Vo, Khagendra Dhungel, Dinesh Adhikari  
+- **Scrum Master:** Thinh Vo  
+- **DevOps:** Khagendra Dhungel  
+- **Frontend Team:** Dinesh Adhikari  
+- **Backend Team:** Dinesh Adhikari, Thinh Vo  
 
 ---
 
 ## Getting Started
 
 ### Prerequisites
-
-Make sure you have:
-
-- Java 21
-- Java SDK: OpenJDK 21
-- Maven
-- SpringBoot  
+- Java 21 (OpenJDK 21)  
+- Maven  
+- Spring Boot  
 
 ### Installation
-
 ```bash
 git clone https://github.com/ThinhNVo/Pawction
 cd pawctions
+mvn clean install
+mvn spring-boot:run
